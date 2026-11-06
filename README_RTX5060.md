@@ -52,6 +52,17 @@ To deliberately include every available prediction instead, run
 thousands of examples and take much longer to fine-tune; the balanced default covers all eight projects
 without letting the largest CSV dominate the model.
 
+For an easy one-file transfer, package the generated data together with the original adapter on this Mac:
+
+```bash
+python utils/package_pc_inputs.py \
+  --adapter /path/to/original/fraudlm-v2/checkpoint/xl_r16_v1/lora_adapter.pt
+```
+
+Copy `checkpoint/fraudlm-v2-5060-private-inputs.zip` to the PC and extract it in the cloned repository
+root. It creates both `dataset_multisource/` and `checkpoint/base_adapter/xl_r16_v1/` in the correct places.
+The ZIP is private input material and must not be uploaded to GitHub.
+
 ## 2. Set up PyCharm on the RTX 5060 PC
 
 Use Python 3.11 and create a project virtual environment. In PyCharm's Terminal (PowerShell):
