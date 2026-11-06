@@ -1,0 +1,183 @@
+"""Build continued-SFT data from balanced predictions made by eight ML projects.
+
+Ground-truth target columns are deliberately ignored. The generated JSON/JSONL stays local because
+the source datasets have different licences, including non-commercial and no-derivatives terms.
+"""
+
+from __future__ import annotations
+
+import argparse
+import hashlib
+import json
+import random
+import sys
+from pathlib import Path
+
+import pandas as pd
+
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+from utils.multisource_prompt import format_prediction_context, prediction_answer  # noqa: E402
+
+INTENTS = [
+    ("explain", "Explain this classifier result without treating it as proof of fraud."),
+    ("next_steps", "What should a fraud analyst do next for this case?"),
+    ("limitations", "What are the limitations of this prediction?"),
+]
+
+
+def _stable_int(text: str) -> int:
+    return int(hashlib.sha256(text.encode("utf-8")).hexdigest()[:16], 16)
+
+
+def _clean_value(value):
+    if pd.isna(value):
+        return "not provided"
+    if isinstance(value, float):
+        return round(value, 6)
+    return value.item() if hasattr(value, "item") else value
+
+
+def balanced_sample(frame: pd.DataFrame, threshold: float, limit: int, seed: int) -> pd.DataFrame:
+    """Deterministically keep both review outcomes; use all rows when limit is zero."""
+    if not limit or len(frame) <= limit:
+        return frame.copy()
+    work = frame.copy()
+    work["_flagged"] = work["_score"] >= threshold
+    parts = []
+    per_group = limit // 2
+    for flagged in (False, True):
+        group = work[work["_flagged"] == flagged]
+        take = min(len(group), per_group)
+        if take:
+            parts.append(group.sample(take, random_state=seed + int(flagged)))
+    out = pd.concat(parts) if parts else work.iloc[0:0]
+    remaining = limit - len(out)
+    if remaining:
+        rest = work.drop(index=out.index).sample(min(remaining, len(work) - len(out)), random_state=seed + 7)
+        out = pd.concat([out, rest])
+    return out.drop(columns="_flagged").sort_index()
+
+
+def read_source(source: dict, root: Path, limit: int, seed: int) -> list[dict]:
+    path = (root / source["prediction_file"]).resolve()
+    if not path.is_file():
+        raise FileNotFoundError(f"{source['id']}: prediction file not found: {path}")
+    frame = pd.read_csv(path)
+    score_col = source["score_column"]
+    if score_col not in frame:
+        raise ValueError(f"{source['id']}: missing score column {score_col!r}")
+    frame["_score"] = pd.to_numeric(frame[score_col], errors="coerce")
+    frame = frame[frame["_score"].between(0, 1, inclusive="both")].copy()
+    frame = balanced_sample(frame, float(source["threshold"]), limit, seed)
+    rows = []
+    for row_no, (_, row) in enumerate(frame.iterrows()):
+        raw_id = row_no if source["id_column"] == "__row__" else row[source["id_column"]]
+        case_id = str(int(raw_id)) if isinstance(raw_id, float) and raw_id.is_integer() else str(raw_id)
+        signals = {col: _clean_value(row[col]) for col in source.get("extra_columns", [])
+                   if col in row and col not in {"top_factors"}}
+        if source["id"] == "baf_base" and row.get("top_factors"):
+            try:
+                factors = json.loads(row["top_factors"])
+                signals["main model factors"] = "; ".join(
+                    f"{f['feature']}={_clean_value(f.get('value'))} ({f['direction']} score)" for f in factors)
+            except (TypeError, ValueError, KeyError):
+                pass
+        rows.append({
+            "case_key": f"{source['id']}:{case_id}", "source_id": source["id"], "case_id": case_id,
+            "dataset_name": source["name"], "dataset_kind": source["kind"], "model": source["model"],
+            "score": float(row["_score"]), "threshold": float(source["threshold"]), "signals": signals,
+        })
+    return rows
+
+
+def make_example(case: dict) -> dict:
+    intent, instruction = INTENTS[_stable_int(case["case_key"]) % len(INTENTS)]
+    return {
+        "id": "multi_" + case["case_key"].replace(":", "_"),
+        "instruction": instruction,
+        "input": format_prediction_context(case),
+        "output": prediction_answer(case, intent),
+        "task": "multisource_prediction",
+        "source": case["source_id"],
+    }
+
+
+def split_name(key: str) -> str:
+    bucket = _stable_int(key) % 100
+    return "train" if bucket < 90 else ("val" if bucket < 95 else "test")
+
+
+def source_fact_examples(source: dict) -> list[dict]:
+    metrics = (f"Held-out PR-AUC {source['pr_auc']:.3f}, precision {source['precision']:.3f}, "
+               f"recall {source['recall']:.3f}, F1 {source['f1']:.3f}, and ROC-AUC {source['roc_auc']:.3f}.")
+    common = (f"{source['name']} is recorded as {source['kind']} data. The project classifier is "
+              f"{source['model']} and its frozen review threshold is {source['threshold']:.6f}. {metrics} "
+              "These are model-level held-out results, not a guarantee for an individual case.")
+    return [{
+        "id": f"fact_{source['id']}_{i}", "instruction": question, "input": "",
+        "output": common, "task": "multisource_model_fact", "source": source["id"],
+    } for i, question in enumerate((
+        f"What data and classifier does the {source['name']} project use?",
+        f"How reliable is the {source['name']} classifier on its held-out test data?",
+    ))]
+
+
+def build(args) -> dict:
+    registry_path = Path(args.registry).resolve()
+    registry = json.loads(registry_path.read_text(encoding="utf-8"))
+    root = registry_path.parents[1]
+    output = Path(args.output).resolve()
+    output.mkdir(parents=True, exist_ok=True)
+    all_cases, counts = [], {}
+    for source in registry["sources"]:
+        cases = read_source(source, root, args.max_rows_per_source, args.seed)
+        all_cases.extend(cases)
+        counts[source["id"]] = len(cases)
+        print(f"[source] {source['id']}: {len(cases):,} selected")
+
+    splits = {name: [] for name in ("train", "val", "test")}
+    for case in all_cases:
+        splits[split_name(case["case_key"])].append(make_example(case))
+    for source in registry["sources"]:
+        splits["train"].extend(source_fact_examples(source))
+
+    if not args.no_original:
+        for name in splits:
+            original = ROOT / "dataset" / f"fraudlm_sft_{name}.json"
+            splits[name].extend(json.loads(original.read_text(encoding="utf-8")))
+
+    rng = random.Random(args.seed)
+    for name, rows in splits.items():
+        rng.shuffle(rows)
+        (output / f"fraudlm_sft_{name}.json").write_text(json.dumps(rows, indent=2), encoding="utf-8")
+    with open(output / "prediction_store.jsonl", "w", encoding="utf-8") as fh:
+        for case in sorted(all_cases, key=lambda x: x["case_key"]):
+            fh.write(json.dumps(case) + "\n")
+    manifest = {
+        "seed": args.seed, "max_rows_per_source": args.max_rows_per_source,
+        "prediction_rows": len(all_cases), "selected_by_source": counts,
+        "split_rows": {k: len(v) for k, v in splits.items()},
+        "includes_original_fraudlm_data": not args.no_original,
+        "safety": "Target labels were excluded. Generated files are local and must not be published.",
+    }
+    (output / "build_manifest.json").write_text(json.dumps(manifest, indent=2), encoding="utf-8")
+    print(json.dumps(manifest, indent=2))
+    return manifest
+
+
+def parser() -> argparse.ArgumentParser:
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument("--registry", default=str(ROOT / "configs" / "prediction_sources.json"))
+    ap.add_argument("--output", default=str(ROOT / "dataset_multisource"))
+    ap.add_argument("--max-rows-per-source", type=int, default=5000,
+                    help="balanced cap per source; 0 means every prediction and can be very large")
+    ap.add_argument("--seed", type=int, default=42)
+    ap.add_argument("--no-original", action="store_true", help="do not mix the original FraudLM instruction rows")
+    return ap
+
+
+if __name__ == "__main__":
+    build(parser().parse_args())
