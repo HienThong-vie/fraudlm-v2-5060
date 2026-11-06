@@ -1,4 +1,10 @@
-# FraudLM v2: team test copy (COS30049.2-1, A2 HD extra)
+# FraudLM v2: RTX 5060 continued-training edition
+
+For the RTX 5060 8 GB workflow, eight-project prediction data, PyCharm configurations, training and
+multi-source chat, start with **[README_RTX5060.md](README_RTX5060.md)**.
+
+This copy keeps the original team's custom GPT-2 XL + LoRA implementation. The original developer
+quickstart remains below for reference.
 
 Developer quickstart so team members can run the chat demo. This is **not** the submitted README.
 GPT-2 (own PyTorch code) + OpenAI GPT-2 XL weights + LoRA r16 adapter, run `xl_r16_v1`.

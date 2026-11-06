@@ -8,6 +8,8 @@ checkpoint/*
 .venv/
 __pycache__/
 .pytest_cache/
+dataset_multisource/
+.idea/
 # never commit credentials
 kaggle.json
 .env
