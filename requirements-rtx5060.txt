@@ -1,0 +1,13 @@
+# Install the current CUDA-enabled PyTorch build first from https://pytorch.org/get-started/locally/
+# This file intentionally does not pin torch so it cannot replace that CUDA build with a CPU wheel.
+numpy
+pandas
+matplotlib
+tqdm
+pytest
+scikit-learn>=1.5,<2
+joblib>=1.4,<2
+scipy
+tiktoken>=0.7
+safetensors>=0.4
+huggingface_hub>=0.23
