@@ -4,6 +4,16 @@ This is the same project model as `fraudlm-v2`: the team's own GPT-2 architectur
 weights, and a rank-16 LoRA adapter. It does **continued instruction fine-tuning** on predictions from
 the eight ML projects; it does not replace the model with Qwen and does not retrain GPT-2 XL from zero.
 
+Clone the private RTX repository on the PC and open that folder in PyCharm:
+
+```powershell
+git clone https://github.com/KennyDao1324/fraudlm-v2-5060.git
+cd fraudlm-v2-5060
+```
+
+The repository contains code, configs, tests and documentation. Model weights and the generated
+multi-source dataset are intentionally not in Git; Sections 1 and 3 explain where to put them.
+
 ## What it learns
 
 The local builder reads prediction outputs from:
