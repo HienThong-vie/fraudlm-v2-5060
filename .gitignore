@@ -9,6 +9,10 @@ checkpoint/*
 __pycache__/
 .pytest_cache/
 dataset_multisource/
+dataset_final/
+dataset_final_v2/
+preprocessed/final_predictions/
+.private/
 .idea/
 # never commit credentials
 kaggle.json

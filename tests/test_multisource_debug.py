@@ -70,10 +70,11 @@ def test_question_guard_reports_that_generation_was_skipped():
     assert "SHOULD NOT BE GENERATED" not in output
 
 
-def test_debug_free_text_reports_missing_case_context():
+def test_debug_free_text_is_checked_without_case_context():
     session, output, _ = session_for("A general answer.", debug=True)
-    session.handle("What is a review threshold?")
-    assert any("not applied (no case attached)" in line for line in output)
+    session.handle("What is a fraud analyst?")
+    assert any("Answer guard:" in line for line in output)
+    assert not any("not applied" in line for line in output)
 
 
 def test_cli_debug_flag_reaches_session(tmp_path, monkeypatch, capsys):
@@ -91,9 +92,12 @@ def test_cli_debug_flag_reaches_session(tmp_path, monkeypatch, capsys):
 
     monkeypatch.setattr(chat, "Engine", FakeEngine)
     monkeypatch.setattr(chat, "load_prediction_store", lambda path: {"demo:7": CASE})
+    registry = tmp_path / 'registry.json'
+    import json
+    registry.write_text(json.dumps({'sources': [dict(id='demo', name='Demo', model='test model', threshold=.6)]}))
     assert not parser().parse_args(["--adapter", str(adapter)]).debug
     assert main(["--adapter", str(adapter), "--store", str(store), "--size", "gpt2-xl",
-                 "--debug", "--once", "ask demo:7 Explain the result."]) == 0
+                 "--registry", str(registry), "--debug", "--once", "ask demo:7 Explain the result."]) == 0
     output = capsys.readouterr().out
     assert "Raw model answer" in output and "no rule matched" in output
 

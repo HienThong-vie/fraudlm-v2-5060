@@ -12,6 +12,8 @@ Commands:
 from __future__ import annotations
 
 import argparse
+import json
+import re
 import sys
 from pathlib import Path
 
@@ -20,16 +22,18 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from chat import Engine, _adapter_size  # noqa: E402
-from utils.guard import FOOTER, check_question  # noqa: E402
+from utils.guard import FOOTER, check_answer, check_question  # noqa: E402
 from utils.multisource_prompt import (  # noqa: E402
     format_prediction_context, guard_prediction_answer, load_prediction_store,
     prediction_guard_reasons,
     calculated_threshold_answer,
+    source_facts,
 )
 
 
 HELP = """Commands
   datasets                         show available dataset ids
+  facts <dataset_id>               show current registry model facts
   list <dataset_id>                show example case keys
   explain <dataset_id:case_id>     explain one stored prediction
   ask <dataset_id:case_id> <text>  ask a question grounded in that prediction
@@ -40,11 +44,12 @@ Free text asks a general fraud-screening question without a case in focus."""
 
 
 class MultiSourceSession:
-    def __init__(self, cases, generate_fn, out=print, debug=False):
+    def __init__(self, cases, generate_fn, out=print, debug=False, sources=None):
         self.cases = cases
         self.generate_fn = generate_fn
         self.out = out
         self.debug = debug
+        self.sources = {s['id']: s for s in (sources or [])}
 
     def _answer(self, question, case=None):
         checked = check_question(question, None)
@@ -52,6 +57,15 @@ class MultiSourceSession:
             if self.debug:
                 self.out(f"[debug] Question guard: {checked.kind}; model was not called.")
             self.out("FraudLM> " + checked.reply)
+            return
+        if case is None and self.sources and re.search(r'\b(?:classifier|threshold|metrics?|pr.?auc|recall|precision|model|dataset)\b', question, re.I):
+            matches = [s for key, s in self.sources.items()
+                       if re.search(r'(?<!\w)' + re.escape(key) + r'(?!\w)', question, re.I)]
+            if len(matches) == 1:
+                self.out('FraudLM> ' + source_facts(matches[0]).replace('\n', '\n         '))
+            else:
+                self.out('FraudLM> Use: facts <dataset_id>. Model settings are read from the current registry, not recalled from training.')
+            self.out('         ' + FOOTER)
             return
         calculated = calculated_threshold_answer(question, case) if case else None
         if calculated is not None:
@@ -68,13 +82,11 @@ class MultiSourceSession:
             self.out(raw if raw else "<empty>")
             self.out("[debug] End raw model answer")
             reasons = prediction_guard_reasons(raw, case) if case else []
-            if case:
-                self.out("[debug] Answer guard: " + ("; ".join(reasons) if reasons else "no rule matched"))
-            else:
-                self.out("[debug] Answer guard: not applied (no case attached)")
-        guarded = False
-        if case:
-            raw, guarded = guard_prediction_answer(raw, case)
+            full = check_answer(raw, question=question, ctx=None, grounding_text=context if case else None)
+            if full.status == 'guarded':
+                reasons.extend(full.reasons)
+            self.out("[debug] Answer guard: " + ("; ".join(reasons) if reasons else "no rule matched"))
+        raw, guarded = guard_prediction_answer(raw, case, question=question)
         if self.debug:
             self.out("[debug] Final answer (after guards):")
         self.out("FraudLM> " + raw.replace("\n", "\n         "))
@@ -105,6 +117,11 @@ class MultiSourceSession:
             ids = sorted({c["source_id"] for c in self.cases.values()})
             self.out("Dataset ids: " + ", ".join(ids))
             return True
+        if low == 'facts':
+            source = self.sources.get(rest.strip())
+            self.out('FraudLM> ' + (source_facts(source) if source else 'Unknown dataset. Use: datasets').replace('\n', '\n         '))
+            self.out('         ' + FOOTER)
+            return True
         if low == "list":
             rows = [key for key, case in self.cases.items() if case["source_id"] == rest.strip()][:10]
             self.out("Case keys: " + (", ".join(rows) if rows else "none; type 'datasets'"))
@@ -131,7 +148,8 @@ class MultiSourceSession:
 def parser():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--adapter", required=True)
-    ap.add_argument("--store", default=str(ROOT / "dataset_multisource" / "prediction_store.jsonl"))
+    ap.add_argument('--registry', default=str(ROOT / 'configs/prediction_sources.json'))
+    ap.add_argument("--store", default=str(ROOT / "dataset_final_v2" / "prediction_store.jsonl"))
     ap.add_argument("--size", default=None, choices=["gpt2-small", "gpt2-medium", "gpt2-large", "gpt2-xl"])
     ap.add_argument("--device", default="cuda", choices=["auto", "cuda", "cpu"])
     ap.add_argument("--dtype", default="fp16", choices=["auto", "fp16", "fp32", "bf16"])
@@ -152,7 +170,19 @@ def main(argv=None):
     size = args.size or _adapter_size(args.adapter) or "gpt2-xl"
     engine = Engine(size, args.adapter, args.device, args.dtype, args.cache_dir, None, None,
                     args.max_new_tokens)
-    session = MultiSourceSession(load_prediction_store(args.store), engine.generate, debug=args.debug)
+    sources = json.loads(Path(args.registry).read_text(encoding='utf-8'))['sources']
+    cases = load_prediction_store(args.store)
+    source_map = {s['id']: s for s in sources}
+    for case in cases.values():
+        source = source_map.get(case['source_id'])
+        if source is None:
+            raise SystemExit(f"Unknown source in prediction store: {case['source_id']}")
+        if case['model'] != source['model'] or abs(float(case['threshold']) - source['threshold']) > 1e-12:
+            raise SystemExit('Prediction store does not match registry; rebuild it before chatting.')
+        if source.get('model_sha256') and case.get('model_sha256') != source['model_sha256']:
+            raise SystemExit('Prediction store model checksum differs; rebuild it before chatting.')
+        case['model_metrics'] = {k: source[k] for k in ('pr_auc', 'recall', 'precision', 'f1', 'roc_auc', 'actual_test_fpr') if k in source}
+    session = MultiSourceSession(cases, engine.generate, debug=args.debug, sources=sources)
     print(f"FraudLM multi-source | {size} | {len(session.cases):,} local prediction cases | type help")
     if args.once:
         for line in args.once:

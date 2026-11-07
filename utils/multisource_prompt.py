@@ -4,7 +4,10 @@ from __future__ import annotations
 
 import json
 import re
+import hashlib
 from decimal import Decimal
+
+from utils.guard import check_answer
 
 MULTISOURCE_RULES = (
     "Rules: support a fraud analyst; never approve, reject, block or freeze anything; "
@@ -26,6 +29,11 @@ def format_prediction_context(case: dict, include_rules: bool = True) -> str:
         f"Review threshold: {threshold:.6f}",
         f"Result: {'flagged for review' if flagged else 'not flagged'}",
     ]
+    if case.get('experiment'):
+        lines.append(f"Model experiment: {case['experiment']}; calibration FPR budget: {case['fpr_budget']:.1%}.")
+        lines.append('Observed signals below are inputs, not feature-attribution or causal evidence.')
+    if case.get('offline_only'):
+        lines.append('Availability: offline AML benchmark; not validated for live transaction decisions.')
     signals = case.get("signals") or {}
     if signals:
         lines.append("Approved case signals:")
@@ -40,16 +48,26 @@ def prediction_answer(case: dict, intent: str) -> str:
     threshold = float(case["threshold"])
     flagged = score >= threshold
     result = "flagged for review" if flagged else "not flagged"
-    base = (f"{case['dataset_name']} case {case['case_id']} has a model score of {score:.6f}. "
-            f"The frozen review threshold is {threshold:.6f}, so it is {result}.")
+    style = int(hashlib.sha256(str(case.get('case_key', case['case_id'])).encode()).hexdigest()[:8], 16) % 3
+    bases = (
+        f"{case['dataset_name']} case {case['case_id']} has a model score of {score:.6f}. The review threshold is {threshold:.6f}, so it is {result}.",
+        f"For {case['dataset_name']} case {case['case_id']}, compare score {score:.6f} with threshold {threshold:.6f}: the recorded result is {result}.",
+        f"The recorded result for {case['dataset_name']} case {case['case_id']} is {result}. Its score is {score:.6f}; the review threshold is {threshold:.6f}.",
+    )
+    base = bases[style]
     if intent == "next_steps":
         return (base + " An analyst should verify the underlying transaction and customer evidence, check for "
                 "related activity, and document the review. The score alone is not proof of fraud and must not "
                 "make an automatic customer decision.")
     if intent == "limitations":
-        return (base + " This output does not include case-level explanation factors, so I cannot claim why the "
-                "classifier produced this score. Performance can change under data drift; use the held-out metrics "
+        factor_note = (" Supplied model-attribution factors are listed in the context; they are not causal evidence."
+                       if case.get('signals', {}).get('main model factors') else
+                       " No model-attribution factors are supplied; observed inputs alone do not explain the score.")
+        return (base + factor_note + " Performance can change under data drift; use the exploratory metrics "
                 "for model-level reliability and investigate the case separately.")
+    if case.get('signals', {}).get('main model factors'):
+        return (base + " Supplied model-attribution factors: " + case['signals']['main model factors']
+                + ". These describe model behaviour, not causes or proof of fraud. An analyst must review the evidence.")
     return (base + " It is a ranking signal for analyst review, not proof of fraud, a calibrated certainty, or a fraud verdict. "
             "No case-level reason should be invented when the classifier output does not provide one.")
 
@@ -103,15 +121,45 @@ def prediction_guard_reasons(text: str, case: dict) -> list[str]:
     if verdict:
         reasons.append(f"Fraud-verdict rule matched {verdict.group(0)!r}")
     flagged = float(case["score"]) >= float(case["threshold"])
-    contradictory = (("not flagged" in raw.lower() and flagged) or
-                     ("flagged for review" in raw.lower() and not flagged))
+    low = raw.lower()
+    negative = re.search(r"\bnot\s+flagged\b(?:\s+for\s+review)?", low)
+    positive_only = re.sub(r"\bnot\s+flagged\b(?:\s+for\s+review)?", "", low)
+    contradictory = ((bool(negative) and flagged) or
+                     (bool(re.search(r"\bflagged\b", positive_only)) and not flagged))
     if contradictory:
         reasons.append("Flagged status contradicts the stored score/threshold comparison")
+    if re.search(r"\b(?:not at risk|risk[- ]free|guaranteed safe|definitely safe)\b", low):
+        reasons.append("Unsupported guarantee of safety")
+    if case.get('case_id'):
+        mentioned = re.findall(r'\bcase\s+(?:id\s*:?\s*)?(\d[\w.-]*)', raw, re.I)
+        if any(value.rstrip('.') != str(case['case_id']) for value in mentioned):
+            reasons.append('Case ID differs from the supplied case')
+    if not case.get('signals', {}).get('main model factors') and re.search(
+            r'\bso\s+(?:the\s+)?(?:model|classifier)\s+(?:gave|produced)|\b(?:raises?|lowers?)\s+(?:the\s+)?(?:model\s+)?score', low):
+        reasons.append('Input signals presented as model attributions without attribution evidence')
     return reasons
 
 
-def guard_prediction_answer(text: str, case: dict, intent: str = "explain") -> tuple[str, bool]:
+def guard_prediction_answer(text: str, case: dict | None, intent: str = "explain",
+                            question: str = "") -> tuple[str, bool]:
     """Replace an unsafe/contradictory grounded answer with a deterministic fact-only answer."""
     raw = (text or "").strip()
-    unsafe = bool(prediction_guard_reasons(raw, case))
-    return (prediction_answer(case, intent), True) if unsafe else (raw, False)
+    checked = check_answer(raw, question=question, ctx=None,
+                           grounding_text=format_prediction_context(case) if case else None)
+    unsafe = checked.status == 'guarded' or bool(prediction_guard_reasons(raw, case) if case else [])
+    if unsafe:
+        return (prediction_answer(case, intent) if case else checked.text), True
+    return checked.text, False
+
+
+def source_facts(source: dict) -> str:
+    """Runtime registry facts; never ask the adapter to recall mutable model settings."""
+    lines = [f"Dataset: {source['name']}", f"Classifier: {source['model']}",
+             f"Review threshold: {source['threshold']:.6f}"]
+    for name in ('pr_auc', 'precision', 'recall', 'f1', 'roc_auc', 'actual_test_fpr'):
+        if name in source:
+            lines.append(f"Exploratory {name}: {source[name]:.6f}")
+    lines.append('These are model-level exploratory results, not proof of fraud or an individual probability.')
+    if source.get('offline_only'):
+        lines.append('Offline AML benchmark; not validated for live transaction decisions.')
+    return '\n'.join(lines)

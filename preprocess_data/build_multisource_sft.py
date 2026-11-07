@@ -20,6 +20,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from utils.multisource_prompt import format_prediction_context, prediction_answer  # noqa: E402
+from utils.prompt import FEATURE_LABELS  # noqa: E402
 
 INTENTS = [
     ("explain", "Explain this classifier result without treating it as proof of fraud."),
@@ -73,8 +74,8 @@ def read_source(source: dict, root: Path, limit: int, seed: int) -> list[dict]:
     frame = frame[frame["_score"].between(0, 1, inclusive="both")].copy()
     frame = balanced_sample(frame, float(source["threshold"]), limit, seed)
     rows = []
-    for row_no, (_, row) in enumerate(frame.iterrows()):
-        raw_id = row_no if source["id_column"] == "__row__" else row[source["id_column"]]
+    for idx, row in frame.iterrows():
+        raw_id = idx if source["id_column"] == "__row__" else row[source["id_column"]]
         case_id = str(int(raw_id)) if isinstance(raw_id, float) and raw_id.is_integer() else str(raw_id)
         signals = {col: _clean_value(row[col]) for col in source.get("extra_columns", [])
                    if col in row and col not in {"top_factors"}}
@@ -82,13 +83,17 @@ def read_source(source: dict, root: Path, limit: int, seed: int) -> list[dict]:
             try:
                 factors = json.loads(row["top_factors"])
                 signals["main model factors"] = "; ".join(
-                    f"{f['feature']}={_clean_value(f.get('value'))} ({f['direction']} score)" for f in factors)
+                    f"{FEATURE_LABELS[f['feature']]}={_clean_value(f.get('value'))} ({f['direction']} score)"
+                    for f in factors if f.get('feature') in FEATURE_LABELS and f.get('direction') in ('raises', 'lowers'))
             except (TypeError, ValueError, KeyError):
                 pass
         rows.append({
             "case_key": f"{source['id']}:{case_id}", "source_id": source["id"], "case_id": case_id,
             "dataset_name": source["name"], "dataset_kind": source["kind"], "model": source["model"],
             "score": float(row["_score"]), "threshold": float(source["threshold"]), "signals": signals,
+            'prediction_row_index': int(idx),
+            'model_metrics': {k: source[k] for k in ('pr_auc', 'precision', 'recall', 'f1', 'roc_auc', 'actual_test_fpr') if k in source},
+            **{key: source[key] for key in ('experiment', 'model_sha256', 'fpr_budget', 'offline_only') if key in source},
         })
     return rows
 
@@ -110,21 +115,6 @@ def split_name(key: str) -> str:
     return "train" if bucket < 90 else ("val" if bucket < 95 else "test")
 
 
-def source_fact_examples(source: dict) -> list[dict]:
-    metrics = (f"Held-out PR-AUC {source['pr_auc']:.3f}, precision {source['precision']:.3f}, "
-               f"recall {source['recall']:.3f}, F1 {source['f1']:.3f}, and ROC-AUC {source['roc_auc']:.3f}.")
-    common = (f"{source['name']} is recorded as {source['kind']} data. The project classifier is "
-              f"{source['model']} and its frozen review threshold is {source['threshold']:.6f}. {metrics} "
-              "These are model-level held-out results, not a guarantee for an individual case.")
-    return [{
-        "id": f"fact_{source['id']}_{i}", "instruction": question, "input": "",
-        "output": common, "task": "multisource_model_fact", "source": source["id"],
-    } for i, question in enumerate((
-        f"What data and classifier does the {source['name']} project use?",
-        f"How reliable is the {source['name']} classifier on its held-out test data?",
-    ))]
-
-
 def build(args) -> dict:
     registry_path = Path(args.registry).resolve()
     registry = json.loads(registry_path.read_text(encoding="utf-8"))
@@ -141,10 +131,8 @@ def build(args) -> dict:
     splits = {name: [] for name in ("train", "val", "test")}
     for case in all_cases:
         splits[split_name(case["case_key"])].append(make_example(case))
-    for source in registry["sources"]:
-        splits["train"].extend(source_fact_examples(source))
-
-    if not args.no_original:
+    include_original = not args.no_original
+    if include_original:
         for name in splits:
             original = ROOT / "dataset" / f"fraudlm_sft_{name}.json"
             splits[name].extend(json.loads(original.read_text(encoding="utf-8")))
@@ -160,7 +148,15 @@ def build(args) -> dict:
         "seed": args.seed, "max_rows_per_source": args.max_rows_per_source,
         "prediction_rows": len(all_cases), "selected_by_source": counts,
         "split_rows": {k: len(v) for k, v in splits.items()},
-        "includes_original_fraudlm_data": not args.no_original,
+        "includes_original_fraudlm_data": include_original,
+        'model_fact_training_rows': 0,
+        'generated_file_sha256': {name: hashlib.sha256((output/name).read_bytes()).hexdigest()
+                                  for name in ('fraudlm_sft_train.json', 'fraudlm_sft_val.json', 'fraudlm_sft_test.json', 'prediction_store.jsonl')},
+        'registry_sha256': hashlib.sha256(registry_path.read_bytes()).hexdigest(),
+        'sources': {s['id']: {'prediction_file': s['prediction_file'],
+                            'prediction_sha256': hashlib.sha256((root / s['prediction_file']).read_bytes()).hexdigest(),
+                            'model_sha256': s.get('model_sha256'),
+                            'row_index_definition': 'Zero-based CSV data-row index, excluding header'} for s in registry['sources']},
         "safety": "Target labels were excluded. Generated files are local and must not be published.",
     }
     (output / "build_manifest.json").write_text(json.dumps(manifest, indent=2), encoding="utf-8")
@@ -171,8 +167,8 @@ def build(args) -> dict:
 def parser() -> argparse.ArgumentParser:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--registry", default=str(ROOT / "configs" / "prediction_sources.json"))
-    ap.add_argument("--output", default=str(ROOT / "dataset_multisource"))
-    ap.add_argument("--max-rows-per-source", type=int, default=5000,
+    ap.add_argument("--output", default=str(ROOT / "dataset_final_v2"))
+    ap.add_argument("--max-rows-per-source", type=int, default=500,
                     help="balanced cap per source; 0 means every prediction and can be very large")
     ap.add_argument("--seed", type=int, default=42)
     ap.add_argument("--no-original", action="store_true", help="do not mix the original FraudLM instruction rows")
