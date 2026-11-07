@@ -15,7 +15,7 @@ Extra Bitext filters (G3 review F3):
       handling, then the other everyday ones, then loans and mortgages. Inside a tier the intents are
       taken round-robin, so the shortfall of a tier is filled from the next tier and nothing is padded.
 
-Author: FraudLM v2 team (COS30049.2-1). Written with help from Claude Code (Anthropic); reviewed by Thong.
+Author: FraudLM v2 team (COS30049.2-1).
 """
 
 from __future__ import annotations

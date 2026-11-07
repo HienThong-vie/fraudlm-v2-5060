@@ -9,7 +9,7 @@ No pretraining happens in this project (PLAN D1); these weights are the starting
 Author: FraudLM v2 team (COS30049.2-1).
 Weight mapping follows Raschka, S. (2024) *Build a Large Language Model (From Scratch)*, Manning,
 chapter 5 (`load_weights_into_gpt`); code repo Apache-2.0.
-Written with help from Claude Code (Anthropic); reviewed by Thong.
+
 
 Note: `transformers` is never imported here (PLAN D3). We only read the raw tensors.
 """

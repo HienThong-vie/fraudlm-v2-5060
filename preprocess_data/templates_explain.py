@@ -9,7 +9,7 @@ Answers are built from the context numbers only (score, threshold, factor names 
 number in an answer is copied from the `input`. Answers never use the words approve / reject / block,
 "fraudulent" or "probability", and never name age, income or employment.
 
-Author: FraudLM v2 team (COS30049.2-1). Written with help from Claude Code (Anthropic); reviewed by Thong.
+Author: FraudLM v2 team (COS30049.2-1).
 """
 
 from __future__ import annotations

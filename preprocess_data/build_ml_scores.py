@@ -26,7 +26,7 @@ evaluation only, never shown to the model), top_factors (JSON list of {feature, 
 
 Run from llm_ver2/:  .venv/Scripts/python -m preprocess_data.build_ml_scores
 
-Author: FraudLM v2 team (COS30049.2-1). Written with help from Claude Code (Anthropic); reviewed by Thong.
+Author: FraudLM v2 team (COS30049.2-1).
 """
 
 from __future__ import annotations

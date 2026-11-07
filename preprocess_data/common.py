@@ -1,6 +1,6 @@
 """Shared paths, safety regexes and small helpers for the FraudLM v2 dataset builders.
 
-Author: FraudLM v2 team (COS30049.2-1). Written with help from Claude Code (Anthropic); reviewed by Thong.
+Author: FraudLM v2 team (COS30049.2-1).
 The protected-term and decision-term lists follow A1 requirement OOS07 and PLAN.md decision D7.
 """
 

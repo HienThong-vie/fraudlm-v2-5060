@@ -1,6 +1,6 @@
 """Tests for utils/prompt.py: the Alpaca template, EOS handling and the score context block.
 
-Author: FraudLM v2 team (COS30049.2-1). Written with help from Claude Code (Anthropic); reviewed by Thong.
+Author: FraudLM v2 team (COS30049.2-1).
 """
 
 import pytest

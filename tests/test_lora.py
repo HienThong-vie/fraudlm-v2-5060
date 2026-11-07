@@ -3,7 +3,7 @@ Tests for training_model/lora.py: base frozen, B = 0 keeps the base output, save
 merge gives the same logits, trainable counts for gpt2-small and gpt2-xl.
 
 Author: FraudLM v2 team (COS30049.2-1).
-Written with help from Claude Code (Anthropic); reviewed by Thong.
+
 """
 
 import copy

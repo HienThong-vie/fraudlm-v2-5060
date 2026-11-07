@@ -3,7 +3,7 @@ Tests for the G5 evaluation harness: evaluation/metrics.py, evaluation/baselines
 evaluation/run_eval.py (generation chunking, response loss, B0 end to end) and evaluation/make_figures.py.
 
 Author: FraudLM v2 team (COS30049.2-1).
-Written with help from Claude Code (Anthropic); reviewed by Thong.
+
 """
 
 import csv

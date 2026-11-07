@@ -1,12 +1,12 @@
 """General banking / fraud-screening concept Q&A for the `banking_qa` task.
 
-Source tag: llm:claude-sonnet. The answers are short textbook-level definitions written by Claude Code for
-this project; they contain no dataset numbers (the only figures are generic rules of thumb such as the
+The source tag is retained in the row metadata. These short textbook-level definitions
+contain no dataset numbers (the only figures are generic rules of thumb such as the
 PSI 0.25 convention and the "5%" used in this project's threshold wording). Each entry is
 (template question, [paraphrases], held-out question, answer): the held-out question is used in the test
 split only. No entry names age, income or employment, and none uses approve / reject / block / decline.
 
-Author: FraudLM v2 team (COS30049.2-1). Written with help from Claude Code (Anthropic); reviewed by Thong.
+Author: FraudLM v2 team (COS30049.2-1).
 """
 
 from __future__ import annotations

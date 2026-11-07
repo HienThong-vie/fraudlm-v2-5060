@@ -3,7 +3,7 @@ Tests for training_model/gpt_model.py: output shapes, causal masking, parameter 
 weight tying and gradient checkpointing.
 
 Author: FraudLM v2 team (COS30049.2-1).
-Written with help from Claude Code (Anthropic); reviewed by Thong.
+
 """
 
 import copy

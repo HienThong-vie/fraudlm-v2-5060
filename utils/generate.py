@@ -7,7 +7,7 @@ end-of-text token (id 50256) and cropping the context to the model's 1,024-token
 Author: FraudLM v2 team (COS30049.2-1).
 Follows Raschka, S. (2024) *Build a Large Language Model (From Scratch)*, Manning,
 chapters 4-5 (`generate`, `text_to_token_ids`, `token_ids_to_text`); code repo Apache-2.0.
-Written with help from Claude Code (Anthropic); reviewed by Thong.
+
 """
 
 import tiktoken

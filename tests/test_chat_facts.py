@@ -4,7 +4,7 @@ exactly like the `### Input:` of the training `dataset_fact` rows, contain the r
 reference answers pass the guard's number check.
 
 Author: FraudLM v2 team (COS30049.2-1).
-Written with help from Claude Code (Anthropic); reviewed by Thong.
+
 """
 
 import json

@@ -19,7 +19,7 @@ The rules were written from the templates in preprocess_data/ and checked on the
 the train/val splits (the reference answers must pass them); nothing here is fitted to model outputs.
 
 Author: FraudLM v2 team (COS30049.2-1).
-Written with help from Claude Code (Anthropic); reviewed by Thong.
+
 """
 
 from __future__ import annotations

@@ -10,7 +10,7 @@ image (the caption goes under the figure in the report; caption facts are in eva
 Every plotted value is read from a results file or train_log.csv; nothing is typed in by hand.
 
 Author: FraudLM v2 team (COS30049.2-1).
-Written with help from Claude Code (Anthropic); reviewed by Thong.
+
 """
 
 from __future__ import annotations

@@ -9,7 +9,7 @@ This responder is written separately from the dataset templates in preprocess_da
 only (instruction, input), never the task label, the policy category or the reference answer.
 
 Author: FraudLM v2 team (COS30049.2-1).
-Written with help from Claude Code (Anthropic); reviewed by Thong.
+
 """
 
 from __future__ import annotations

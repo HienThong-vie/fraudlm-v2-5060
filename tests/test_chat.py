@@ -4,7 +4,7 @@ plus a scripted end-to-end session with the real gpt2-small base model on the CP
 (merge equals the unmerged model), and the error exits.
 
 Author: FraudLM v2 team (COS30049.2-1).
-Written with help from Claude Code (Anthropic); reviewed by Thong.
+
 """
 
 import json

@@ -12,7 +12,7 @@ The prompt template is never re-written here: every example goes through
 Author: FraudLM v2 team (COS30049.2-1).
 Masked instruction fine-tuning follows Raschka, S. (2024) *Build a Large Language Model (From
 Scratch)*, Manning, chapter 7 (custom collate with -100 targets); code repo Apache-2.0.
-Written with help from Claude Code (Anthropic); reviewed by Thong.
+
 """
 
 import json

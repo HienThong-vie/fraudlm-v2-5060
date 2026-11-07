@@ -5,7 +5,7 @@ The key check: decoding the learned label tokens of an example gives back exactl
 text (+ EOS) from utils.prompt.format_example, so the model learns the answer and never the prompt.
 
 Author: FraudLM v2 team (COS30049.2-1).
-Written with help from Claude Code (Anthropic); reviewed by Thong.
+
 """
 
 from pathlib import Path

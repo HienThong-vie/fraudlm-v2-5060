@@ -11,7 +11,7 @@ Usage (from llm_ver2/):
   python evaluation/pick_examples.py evaluation/results/<file>.json --n 3
 
 Author: FraudLM v2 team (COS30049.2-1).
-Written with help from Claude Code (Anthropic); reviewed by Thong.
+
 """
 
 from __future__ import annotations

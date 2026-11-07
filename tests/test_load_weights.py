@@ -2,7 +2,7 @@
 Tests for utils/load_gpt2_weights.py: OpenAI GPT-2 small loads into our GPTModel and behaves like GPT-2.
 
 Author: FraudLM v2 team (COS30049.2-1).
-Written with help from Claude Code (Anthropic); reviewed by Thong.
+
 Downloads gpt2-small (~550 MB) once into checkpoint/pretrained/gpt2-small/.
 """
 

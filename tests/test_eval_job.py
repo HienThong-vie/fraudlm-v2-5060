@@ -5,7 +5,7 @@ A tiny run (3 rows per split) writes B0 / FT / B1 results and figures; a run sto
 the middle of a split keeps the rows done so far, and the next run resumes them instead of starting again.
 
 Author: FraudLM v2 team (COS30049.2-1).
-Written with help from Claude Code (Anthropic); reviewed by Thong.
+
 """
 
 import importlib.util

@@ -8,7 +8,7 @@ Rows about the protected columns (customer_age, income, employment_status) and t
 (x1, x2, month, device_fraud_count) are dropped, so no such fact can ever be quoted. eda_age_groups.csv
 is never read. Every number in an answer is copied from the fact line in the `input`.
 
-Author: FraudLM v2 team (COS30049.2-1). Written with help from Claude Code (Anthropic); reviewed by Thong.
+Author: FraudLM v2 team (COS30049.2-1).
 """
 
 from __future__ import annotations

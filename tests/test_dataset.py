@@ -4,7 +4,7 @@ Checks: schema, unique ids, disjoint splits, token limits, protected-attribute a
 "every number comes from the input", sizes against the build manifest, months 6-7 kept out of training,
 and the ml_scores grounding table. Run after `python -m preprocess_data.build_sft`.
 
-Author: FraudLM v2 team (COS30049.2-1). Written with help from Claude Code (Anthropic); reviewed by Thong.
+Author: FraudLM v2 team (COS30049.2-1).
 """
 
 import json

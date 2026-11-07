@@ -9,7 +9,7 @@ Hu et al. (2021) "LoRA: Low-Rank Adaptation of Large Language Models".
 Author: FraudLM v2 team (COS30049.2-1).
 Follows Raschka, S. (2024) *Build a Large Language Model (From Scratch)*, Manning,
 appendix E (LoRALayer, LinearWithLoRA); code repo Apache-2.0.
-Written with help from Claude Code (Anthropic); reviewed by Thong.
+
 """
 
 import math

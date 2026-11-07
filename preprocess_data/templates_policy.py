@@ -6,7 +6,7 @@ when a fact is missing, never calls an application "fraudulent", and calls the s
 not a probability. Questions are hand-written (source "template") or paraphrased by Claude
 (source "llm:claude-sonnet"); answers come from templates, with numbers copied from the context.
 
-Author: FraudLM v2 team (COS30049.2-1). Written with help from Claude Code (Anthropic); reviewed by Thong.
+Author: FraudLM v2 team (COS30049.2-1).
 """
 
 from __future__ import annotations

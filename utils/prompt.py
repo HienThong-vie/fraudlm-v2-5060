@@ -5,7 +5,7 @@ so the text the model sees in training is byte-identical to the text it sees at 
 Author: FraudLM v2 team (COS30049.2-1).
 Template format follows the Alpaca instruction format (Taori et al. 2023), as used in
 Raschka, S. (2024) *Build a Large Language Model (From Scratch)*, Manning; code repo Apache-2.0.
-Written with help from Claude Code (Anthropic); reviewed by Thong.
+
 
 Contract (PLAN.md Section 3):
     format_prompt(instruction, input="") -> str   ends with "### Response:\\n"
