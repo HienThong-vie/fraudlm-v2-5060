@@ -1,0 +1,20 @@
+Run: xl_r16_multidata_5060_v1
+Training status: done; 6016 / 6016 steps; 1 epoch.
+Train rows: 48126; validation rows: 2431.
+Initial validation subset loss: 3.4022; best subset loss: 0.0700.
+Final full validation loss: 0.0589. Validation loss is not a held-out quality evaluation.
+Elapsed training time: 23308 seconds. NaN skips: 0; AMP skips: 0.
+GPU check: NVIDIA GeForce RTX 5060; CUDA available; FP16 matrix test passed.
+Adapter integrity: final and best each contain 576 finite tensors / 22118400 parameters.
+Chat smoke: final adapter loaded; 40000 local prediction cases; generated a response; exit 0.
+GitHub repository visibility verified: public.
+Git snapshot: run configuration, summary, progress, training loss log, artifact checksums.
+Adapter archive: fraudlm-rtx5060-trained-adapters.zip; release tag: xl_r16_multidata_5060_v1.
+Archive contents: final adapter, best adapter, run metadata, SHA256 manifest.
+Kept local: private multisource dataset, prediction store, generated samples, optimizer state, pretrained cache.
+Restore: extract the archive into checkpoint/ to restore the original run directory.
+Classifier dependency: preprocessed/_ml_repo restored at documented commit d0fc662; ignored by Git.
+Test suite: 377 passed, 1 skipped, 1 failed (tests/test_train_smoke.py::test_resume_after_kill_continues_identically).
+Failure: repeated CUDA training differs at step 5, before interruption; train_loss 2.2507 versus 2.2489; tolerance 0.0002. Exact GPU reproducibility remains unresolved.
+Skip: optional transformers reference comparison dependency unavailable.
+No model or training source code changed by this snapshot.

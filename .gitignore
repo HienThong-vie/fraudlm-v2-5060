@@ -24,3 +24,8 @@ preprocessed/_ml_repo/
 preprocessed/raw/
 # same JSON files as dataset/
 kaggle/datasets/
+
+# private transfer inventory and environment variants
+PRIVATE_INPUTS_MANIFEST.json
+.env.*
+!.env.example

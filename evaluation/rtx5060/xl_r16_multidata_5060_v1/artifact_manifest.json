@@ -1,0 +1,31 @@
+{
+  "run_id": "xl_r16_multidata_5060_v1",
+  "source_commit": "f3cbdb493d8b44eca15dd81992e531573ac0abc3",
+  "release_tag": "xl_r16_multidata_5060_v1",
+  "files": {
+    "lora_adapter.pt": {
+      "bytes": 88657455,
+      "sha256": "b6b7fc4c5b0a0651a8752b9eb7909dbfaa90500a55824f35369bd22888aabd85"
+    },
+    "lora_adapter_best.pt": {
+      "bytes": 88660365,
+      "sha256": "2ebd40ed07b452d5293b497edb439b1cf9903234e236e3892baa8a4d6ce782a9"
+    },
+    "run_config.json": {
+      "bytes": 1084,
+      "sha256": "81167df6bf172619096d823b0be4f9745a9151148ba54fce0f1dd8dd1b4df256"
+    },
+    "run_summary.json": {
+      "bytes": 359,
+      "sha256": "0ec08908f8c78141f4cbae2dc13aeb84ee4172bb65d0415283d725dc321a7cff"
+    },
+    "progress.json": {
+      "bytes": 70,
+      "sha256": "75006ac55e61c7ade78d1bb81fed0332ff4054134989fac0d630579d1bc5afac"
+    },
+    "train_log.csv": {
+      "bytes": 33423,
+      "sha256": "ab87a515b62a5e6dfdee9384e7fb320a65d2c359d3af0b3abd18fa0c8ffb3f52"
+    }
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "status": "done",
+  "steps": 6016,
+  "epochs": 1,
+  "final_full_val_loss": 0.0589,
+  "best_val_subset_loss": 0.07,
+  "val_rows": 2431,
+  "train_rows": 48126,
+  "tokens_seen": 10629428,
+  "nan_skipped": 0,
+  "amp_skipped_steps": 0,
+  "final_grad_scale": 524288.0,
+  "elapsed_s": 23308.0,
+  "trainable_params": 22118400,
+  "size": "gpt2-xl"
+}
