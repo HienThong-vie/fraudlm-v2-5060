@@ -134,6 +134,14 @@ def prediction_guard_reasons(text: str, case: dict) -> list[str]:
         mentioned = re.findall(r'\bcase\s+(?:id\s*:?\s*)?(\d[\w.-]*)', raw, re.I)
         if any(value.rstrip('.') != str(case['case_id']) for value in mentioned):
             reasons.append('Case ID differs from the supplied case')
+    expected_model = re.sub(r'[^a-z0-9]', '', str(case.get('model', '')).lower())
+    families = {'catboost': r'\bcatboost\b', 'xgboost': r'\bxgboost\b',
+                'randomforest': r'\brandom[ _-]?forest\b',
+                'logisticregression': r'\blogistic[ _-]?regression\b',
+                'histgradientboosting': r'\bhist[ _-]?gradient[ _-]?boosting\b',
+                'extratrees': r'\bextra[ _-]?trees\b'}
+    if expected_model in families and any(re.search(pattern, low) for name, pattern in families.items() if name != expected_model):
+        reasons.append('Classifier identity differs from the supplied current model')
     if not case.get('signals', {}).get('main model factors') and re.search(
             r'\bso\s+(?:the\s+)?(?:model|classifier)\s+(?:gave|produced)|\b(?:raises?|lowers?)\s+(?:the\s+)?(?:model\s+)?score', low):
         reasons.append('Input signals presented as model attributions without attribution evidence')

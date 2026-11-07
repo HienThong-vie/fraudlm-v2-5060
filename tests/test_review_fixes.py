@@ -32,6 +32,13 @@ def test_correct_negative_review_phrase_is_not_a_contradiction():
     assert guard_prediction_answer(answer, CASE) == (answer, False)
 
 
+def test_old_classifier_name_cannot_override_current_case_grounding():
+    case = dict(CASE, model='catboost')
+    answer = 'Logistic regression gave score 0.2 against threshold 0.6. The case is not flagged.'
+    safe, replaced = guard_prediction_answer(answer, case)
+    assert replaced and 'Logistic regression' not in safe
+
+
 def test_general_answer_is_checked_too():
     output = []
     session = MultiSourceSession({}, lambda q, c: ('I would approve the application.', {}), output.append)
