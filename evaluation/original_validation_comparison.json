@@ -1,0 +1,22 @@
+{
+  "rows": 500,
+  "screened_rows": 422,
+  "excluded_overlap_rows": 78,
+  "validation_sha256": "87526bcd9d1c07dfcee4c8ced8d23d9c761234214751c0d3b24ef52bb8fba2e9",
+  "protocol": "Same original 500 validation rows; response-token-weighted CE including EOS, max_len1024, micro_batch1, fp32 merged adapters, no generation.",
+  "limitation": "Diagnostic validation loss, not an independent test or semantic skill evaluation. BAF screening matches displayed scores and factors to all matching original application IDs; other latent entity overlap is not ruled out.",
+  "device": "cpu",
+  "status": "complete",
+  "models": {
+    "xl_r16_v1": {
+      "full_500_loss": 0.32750378462881197,
+      "overlap_screened_loss": 0.3793305848558459,
+      "adapter_sha256": "cb1f8a211d6ea168c5ab11734100b1641b4970037d0a77832c2a704e5d91d3f7"
+    },
+    "xl_r16_multidata_5060_v1": {
+      "full_500_loss": 0.3368091713513533,
+      "overlap_screened_loss": 0.3903141792003303,
+      "adapter_sha256": "b6b7fc4c5b0a0651a8752b9eb7909dbfaa90500a55824f35369bd22888aabd85"
+    }
+  }
+}
