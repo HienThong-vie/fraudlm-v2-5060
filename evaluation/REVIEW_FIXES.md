@@ -16,7 +16,7 @@
 
 `OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 VECLIB_MAXIMUM_THREADS=1 python -m pytest -q --tb=short`
 
-Result: **431 passed, 1 skipped**, 175.16 seconds. The skip concerns the optional Transformers reference package. Real small-model chat/training and CPU resume checks ran after the public weights were cached. The earlier native crash is not hidden as a skip.
+Result after adding device profiles and normalizing working-code headers: **435 passed, 1 skipped**, 181.01 seconds. The skip concerns the optional Transformers reference package. Real small-model chat/training and CPU resume checks ran after the public weights were cached. The earlier native crash is not hidden as a skip. The RTX profile's command routing/configuration is tested here; a fresh CUDA execution on the PC remains a separate check.
 
 The refreshed training split contains 15,621 rows; tokenisation at max length 384 dropped/truncated none. Validation has 613 rows and test has 598 after historical exposure screening. The generated rows are local and are not committed. `refreshed_data_manifest.json` provides aggregate counts and checksums.
 
