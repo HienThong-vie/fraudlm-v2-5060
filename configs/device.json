@@ -1,0 +1,7 @@
+{
+  "name": "RTX 5060 PC",
+  "device": "cuda",
+  "dtype": "fp16",
+  "max_new_tokens": 200,
+  "training_config": "configs/rtx5060_final_models.json"
+}
