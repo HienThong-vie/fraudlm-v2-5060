@@ -1,0 +1,7 @@
+{
+  "name": "Mac CPU",
+  "device": "cpu",
+  "dtype": "fp32",
+  "max_new_tokens": 160,
+  "training_config": "configs/mac_cpu.json"
+}
