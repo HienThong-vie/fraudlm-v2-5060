@@ -1,0 +1,26 @@
+{
+  "protocol": "Replay existing private raw generations through current guards; original generation protocols and raw metrics are unchanged.",
+  "limitation": "Post-review regression checks on known answers, not a new blind evaluation. Template fallbacks can guarantee stored facts but do not prove learned reasoning or semantic advice quality.",
+  "groups": {
+    "continued_adapter": {
+      "n": 32,
+      "replacements": 0,
+      "guarded_numeric_metrics": {
+        "score_repeated": 1.0,
+        "threshold_repeated": 1.0,
+        "flag_correct": 1.0,
+        "guard_rule_violation": 0.0
+      }
+    },
+    "refreshed_context_probe": {
+      "n": 8,
+      "replacements": 3,
+      "guarded_numeric_metrics": {
+        "score_repeated": 0.75,
+        "threshold_repeated": 0.75,
+        "flag_correct": 0.875,
+        "guard_rule_violation": 0.0
+      }
+    }
+  }
+}

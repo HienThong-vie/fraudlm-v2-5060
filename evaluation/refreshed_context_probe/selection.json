@@ -1,0 +1,18 @@
+{
+  "case_keys": [
+    "baf_base:feature_policy_v4-test-000006",
+    "banksim:priority_search_v2-test-000007",
+    "elliptic_bitcoin:feature_policy_v4-test-000017",
+    "fraud_handbook:priority_search_v2-test-000004",
+    "ieee_cis:feature_policy_v4-test-000002",
+    "paysim:feature_policy_v4-test-000009",
+    "sparkov:fit_balance_v3-test-000031",
+    "ulb_creditcard:fit_balance_v3-test-000005"
+  ],
+  "n": 8,
+  "max_new_tokens": 160,
+  "adapter_sha256": "b6b7fc4c5b0a0651a8752b9eb7909dbfaa90500a55824f35369bd22888aabd85",
+  "registry_sha256": "cf02eeb966e8f6364902045519bca154b8877209d61ee7163f62c42e4683545f",
+  "selection": "First lexicographic case per source, alternating flagged/not-flagged before generation.",
+  "scope": "Refreshed-context smoke probe, not a guaranteed unseen-entity holdout or population-quality estimate."
+}

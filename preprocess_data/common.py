@@ -24,6 +24,8 @@ if not EDA_TABLES.is_dir():
 BASE_ZIP = A2_ROOT / "Base.csv.zip"
 ARTIFACT = ML_REPO / "artifacts" / "production_model.joblib"
 MODEL_CARD = ML_REPO / "artifacts" / "model_card.json"
+if not MODEL_CARD.exists():
+    MODEL_CARD = PREPROCESSED / 'legacy_model_card.json'
 ML_SCORES = PREPROCESSED / "ml_scores.csv"
 ML_SCORES_DEMO = PREPROCESSED / "ml_scores_months6_7_demo.csv"
 ML_SCORES_META = PREPROCESSED / "ml_scores.meta.json"

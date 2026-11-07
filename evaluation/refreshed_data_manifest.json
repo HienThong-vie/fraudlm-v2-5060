@@ -1,0 +1,85 @@
+{
+  "seed": 42,
+  "max_rows_per_source": 500,
+  "prediction_rows": 4000,
+  "selected_by_source": {
+    "baf_base": 500,
+    "ieee_cis": 500,
+    "paysim": 500,
+    "fraud_handbook": 500,
+    "sparkov": 500,
+    "banksim": 500,
+    "ulb_creditcard": 500,
+    "elliptic_bitcoin": 500
+  },
+  "split_rows": {
+    "train": 15621,
+    "val": 613,
+    "test": 598
+  },
+  "includes_original_fraudlm_data": true,
+  "model_fact_training_rows": 0,
+  "original_overlap_excluded": {
+    "val": 78,
+    "test": 90
+  },
+  "prior_training_sha256": "ca4c3dabd24ccbeedccc980513c8c3b967e2f7e2f2bee1c984a35e3e5c3a7313",
+  "generated_file_sha256": {
+    "fraudlm_sft_train.json": "29cbb2799f1a9fda29fe30f26010e1500e8ebbdafe1ed4895c165242b01d19a9",
+    "fraudlm_sft_val.json": "70cc44953b7ebb00b77ada7ea6f201027e76dd17ff29d16b30981aac99b063a6",
+    "fraudlm_sft_test.json": "47db4f2310603131e133de51d3cfd56787b331017b683bdb81b833f6fcdf5be7",
+    "prediction_store.jsonl": "f6d04ed65a01e9570aa3ce82a6382fe2039110defcf8cc9199442f36a101bd4f"
+  },
+  "registry_sha256": "cf02eeb966e8f6364902045519bca154b8877209d61ee7163f62c42e4683545f",
+  "sources": {
+    "baf_base": {
+      "prediction_file": "preprocessed/final_predictions/baf.csv",
+      "prediction_sha256": "9957478b22f599b5170eb174ea6ee90280111d93e7afc8e00ca30d2b6568ad1c",
+      "model_sha256": "6655ca84af79c1a6bbdf8b5a61e5fd8178320476ef257c34da7b4f1f8a2927a3",
+      "row_index_definition": "Zero-based CSV data-row index, excluding header"
+    },
+    "ieee_cis": {
+      "prediction_file": "preprocessed/final_predictions/ieee.csv",
+      "prediction_sha256": "8539b881d8e1c9260b9674ea6f21e76c07fab4c3f339c4308a269b6f22d23d0a",
+      "model_sha256": "d1d6c5e52d98795f921b855d5556691e6c58686369a30bdfdb9e0445f35bcfa8",
+      "row_index_definition": "Zero-based CSV data-row index, excluding header"
+    },
+    "paysim": {
+      "prediction_file": "preprocessed/final_predictions/paysim.csv",
+      "prediction_sha256": "4acacaac5f51d9db141b70dbb854e4b9c3f9aebd6c7beeacc8b22dcc8c2dc61a",
+      "model_sha256": "ea67b343f9ad118ab5f120f380db67dad8e2b9bef8a99c0b9496f1254fc797ef",
+      "row_index_definition": "Zero-based CSV data-row index, excluding header"
+    },
+    "fraud_handbook": {
+      "prediction_file": "preprocessed/final_predictions/handbook.csv",
+      "prediction_sha256": "34144227c4f2de73966178233ef9a242d3c0c85919bc30362ee247f0e46da3e3",
+      "model_sha256": "ec150d98357dcf05c1342028d167116dd645e75f4003ece4ae0784c84bf82c4b",
+      "row_index_definition": "Zero-based CSV data-row index, excluding header"
+    },
+    "sparkov": {
+      "prediction_file": "preprocessed/final_predictions/sparkov.csv",
+      "prediction_sha256": "35156d8bf9186c020902e2f4942ba85508c5e697f20642eb871953484093a0dd",
+      "model_sha256": "f4e13f1757bb24b7c71be80eff995dfad875ae99605345713e039b80a6365532",
+      "row_index_definition": "Zero-based CSV data-row index, excluding header"
+    },
+    "banksim": {
+      "prediction_file": "preprocessed/final_predictions/banksim.csv",
+      "prediction_sha256": "3f5d6cc6047ca9e37ad346643edad24a439d4526b20d079b64a2f71627979baf",
+      "model_sha256": "0c54a822f4272513b5570c581e136449bbf1f8a4013a2d9aed0735e51c15d56c",
+      "row_index_definition": "Zero-based CSV data-row index, excluding header"
+    },
+    "ulb_creditcard": {
+      "prediction_file": "preprocessed/final_predictions/ulb.csv",
+      "prediction_sha256": "e5f51c062035d326b07976d808107bc74897c99f4be3673a55cc40cc0b364f48",
+      "model_sha256": "21fc9d21f97716aa24f0c294e86f2f6242e52e29701dcd7f4052d7d011dd29f0",
+      "row_index_definition": "Zero-based CSV data-row index, excluding header"
+    },
+    "elliptic_bitcoin": {
+      "prediction_file": "preprocessed/final_predictions/elliptic.csv",
+      "prediction_sha256": "5ba2128dec1c19d140b812c7600d61f1521a7809707af21339ad6b955d002fc8",
+      "model_sha256": "010494ec8e74205e4e8da0464b27e9e532b742a85f7f428eb1286b18e3221f8f",
+      "row_index_definition": "Zero-based CSV data-row index, excluding header"
+    }
+  },
+  "safety": "Target labels were excluded. Generated files are local and must not be published."
+}

@@ -1,0 +1,9 @@
+{
+  "original_rows": 500,
+  "retained_rows": 410,
+  "excluded_rows": 90,
+  "original_test_sha256": "3b9e9abc222568a72d4ad9ad3068c7bf3cf19124a9be9ef69edb22f0044de25d",
+  "continued_train_sha256": "ca4c3dabd24ccbeedccc980513c8c3b967e2f7e2f2bee1c984a35e3e5c3a7313",
+  "method": "Match displayed score and factor lines to all compatible legacy BAF application IDs; exclude IDs present in continued training.",
+  "limitation": "Conservative context/application screening, not proof of globally unseen entities. Original non-case tasks may retain shared answer patterns. No new model-quality evaluation performed."
+}

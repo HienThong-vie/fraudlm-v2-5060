@@ -1,0 +1,24 @@
+{
+  "status": "complete",
+  "metric_definition": "Six-decimal numeric repetition tolerance5e-7; explicit comparison status; separate existing guard-rule violations. Sentence-final punctuation permitted; negative review phrases are not positive flags.",
+  "evaluated_rows": 32,
+  "requested_rows": 32,
+  "adapter_sha256": "b6b7fc4c5b0a0651a8752b9eb7909dbfaa90500a55824f35369bd22888aabd85",
+  "scope": "Held-out instruction/case contexts from the recorded run2 data. No identical training ID/input/context. Not proof of unseen underlying entities across original mixed datasets. Old-model grounding; separate from refreshed-model context probes.",
+  "model": "GPT-2 XL + completed RTX5060 continued adapter",
+  "guard_replacements": 0,
+  "raw_metrics": {
+    "score_repeated": 1.0,
+    "threshold_repeated": 1.0,
+    "flag_correct": 1.0,
+    "guard_rule_violation": 0.0
+  },
+  "guard_assisted_metrics": {
+    "score_repeated": 1.0,
+    "threshold_repeated": 1.0,
+    "flag_correct": 1.0,
+    "guard_rule_violation": 0.0
+  },
+  "generation_seconds": 690.1546048340388,
+  "limitation": "Small fixed outcome-balanced per-source sample; not population-weighted, not comparable directly to run1 full-test rates. Automatic string metrics do not establish semantic advice quality. No retraining or test-driven checkpoint selection."
+}

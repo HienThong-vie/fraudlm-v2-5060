@@ -147,14 +147,16 @@ class MultiSourceSession:
 
 def parser():
     ap = argparse.ArgumentParser(description=__doc__)
+    profile_file = ROOT/'configs/device.json'
+    profile = json.loads(profile_file.read_text()) if profile_file.exists() else {}
     ap.add_argument("--adapter", required=True)
     ap.add_argument('--registry', default=str(ROOT / 'configs/prediction_sources.json'))
     ap.add_argument("--store", default=str(ROOT / "dataset_final_v2" / "prediction_store.jsonl"))
     ap.add_argument("--size", default=None, choices=["gpt2-small", "gpt2-medium", "gpt2-large", "gpt2-xl"])
-    ap.add_argument("--device", default="cuda", choices=["auto", "cuda", "cpu"])
-    ap.add_argument("--dtype", default="fp16", choices=["auto", "fp16", "fp32", "bf16"])
+    ap.add_argument("--device", default=profile.get('device', 'cuda'), choices=["auto", "cuda", "cpu"])
+    ap.add_argument("--dtype", default=profile.get('dtype', 'fp16'), choices=["auto", "fp16", "fp32", "bf16"])
     ap.add_argument("--cache-dir", default=str(ROOT / "checkpoint" / "pretrained"))
-    ap.add_argument("--max-new-tokens", type=int, default=300)
+    ap.add_argument("--max-new-tokens", type=int, default=profile.get('max_new_tokens', 200))
     ap.add_argument("--once", action="append")
     ap.add_argument("--debug", action="store_true",
                     help="show unfiltered model output and guard trigger reasons; guards remain enabled")
@@ -168,8 +170,6 @@ def main(argv=None):
     if not Path(args.store).is_file():
         raise SystemExit(f"prediction store not found: {args.store}; run preprocess_data/build_multisource_sft.py")
     size = args.size or _adapter_size(args.adapter) or "gpt2-xl"
-    engine = Engine(size, args.adapter, args.device, args.dtype, args.cache_dir, None, None,
-                    args.max_new_tokens)
     sources = json.loads(Path(args.registry).read_text(encoding='utf-8'))['sources']
     cases = load_prediction_store(args.store)
     source_map = {s['id']: s for s in sources}
@@ -182,6 +182,8 @@ def main(argv=None):
         if source.get('model_sha256') and case.get('model_sha256') != source['model_sha256']:
             raise SystemExit('Prediction store model checksum differs; rebuild it before chatting.')
         case['model_metrics'] = {k: source[k] for k in ('pr_auc', 'recall', 'precision', 'f1', 'roc_auc', 'actual_test_fpr') if k in source}
+    engine = Engine(size, args.adapter, args.device, args.dtype, args.cache_dir, None, None,
+                    args.max_new_tokens)
     session = MultiSourceSession(cases, engine.generate, debug=args.debug, sources=sources)
     print(f"FraudLM multi-source | {size} | {len(session.cases):,} local prediction cases | type help")
     if args.once:

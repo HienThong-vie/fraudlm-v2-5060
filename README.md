@@ -1,72 +1,39 @@
-# FraudLM v2: RTX 5060 continued-training edition
+# FraudLM v2
 
-For the RTX 5060 8 GB workflow, eight-project prediction data, PyCharm configurations, training and
-multi-source chat, start with **[README_RTX5060.md](README_RTX5060.md)**.
+GPT-2 XL with rank-16 LoRA for explaining fraud-classifier outputs. The model supports analyst review; it does not predict transactions independently, make customer decisions or prove fraud.
 
-This copy keeps the original team's custom GPT-2 XL + LoRA implementation. The original developer
-quickstart remains below for reference.
+## Start here
 
-Developer quickstart so team members can run the chat demo. This is **not** the submitted README.
-GPT-2 (own PyTorch code) + OpenAI GPT-2 XL weights + LoRA r16 adapter, run `xl_r16_v1`.
-Full chat notes: `README_chat_dev.md`. Numbers to quote: `evaluation/EVAL_NOTES.md` only.
+- [This branch's device setup](DEVICE_GUIDE.md)
+- [RTX 5060 setup and commands](README_RTX5060.md)
+- [Current grounding and evaluation status](FINAL_GROUNDING.md)
+- [Data and model distribution status](DISTRIBUTION.md)
+- [Original adapter evaluation](evaluation/EVAL_NOTES.md)
 
-## 1. Setup (Python 3.11)
+Open the repository folder in PyCharm. Install Python and a CUDA-compatible PyTorch build on the PC, then install `requirements-rtx5060.txt`. Run `python utils/check_cuda.py` before training.
 
-```bash
-git clone https://github.com/HienThong-vie/fraudlm-v2.git
-cd fraudlm-v2
+## Project layout
 
-# conda
-conda env create -f environment.yml
-conda activate fraudlm2
-# or venv + pip
-python -m venv .venv
-.venv\Scripts\activate          # Windows (macOS/Linux: source .venv/bin/activate)
-pip install -r requirements.txt --extra-index-url https://download.pytorch.org/whl/cpu
-```
+| Path | Contents |
+|---|---|
+| `training_model/` | GPT-2 architecture, LoRA, supervised fine-tuning |
+| `preprocess_data/` | Data preparation and multi-source SFT builder |
+| `configs/` | Current prediction registry and training configurations |
+| `utils/` | Prompt formatting, safety checks and private transfer packaging |
+| `evaluation/` | Evaluation scripts, protocols and aggregate results |
+| `chat_multisource.py` | Prediction lookup and guarded chat |
+| `.run/` | Shared PyCharm run configurations |
+| `checkpoint/` | Local weights and training state; not bundled in Git |
+| `dataset_final_v2/` | Local refreshed training data and prediction store; Git-ignored |
 
-## 2. Download the trained adapter (89 MB, GitHub Release `xl_r16_v1`)
+## Current model
 
-```bash
-gh release download xl_r16_v1 -R HienThong-vie/fraudlm-v2 -p lora_adapter.pt -D checkpoint/xl_r16_v1
-```
+The completed RTX run is `xl_r16_multidata_5060_v1`: 6,016 steps and final validation loss 0.0589 on a mostly templated set. That loss must not be compared directly with the original adapter's loss on a different dataset. Small context checks do not establish improved generalisation or retention of all original skills.
 
-Without `gh`:
-`curl -L -o checkpoint/xl_r16_v1/lora_adapter.pt https://github.com/HienThong-vie/fraudlm-v2/releases/download/xl_r16_v1/lora_adapter.pt`.
-Or download `lora_adapter.pt` from the Releases page and put it in `checkpoint/xl_r16_v1/`
-(next to `run_config.json`, which is already in the repo).
+The current registry uses one frozen classifier per dataset. Model facts are read at runtime, not recalled from adapter weights. The completed adapter still contains older training facts; it has not been retrained on the refreshed data. The separate `rtx5060_final_models.json` configuration is for a future run.
 
-## 3. Team classifier repo (required for the fact lines)
+## Sources and limitations
 
-The fact lines come from the EDA tables (in this repo) plus the team model card (in Kha's repo, frozen commit
-d0fc662). Without this step the chat still starts, but it has no fact lines at all and some tests fail.
+Architecture and training references include Sebastian Raschka's *Build a Large Language Model (From Scratch)* and the [companion repository](https://github.com/rasbt/LLMs-from-scratch). GPT-2 pretrained weights originate from OpenAI. Source, dataset and licence records remain in `dataset/SOURCES.md` and the existing project documentation.
 
-```bash
-git clone https://github.com/KennyDao1324/ai4cyber-fraud preprocessed/_ml_repo
-git -C preprocessed/_ml_repo checkout d0fc662
-```
-
-## 4. Run the chat
-
-```bash
-python chat.py --size gpt2-xl --adapter checkpoint/xl_r16_v1/lora_adapter.pt
-```
-
-- First run downloads the OpenAI GPT-2 XL weights (about 6.2 GB) into `checkpoint/pretrained/`.
-- Needs about 7 GB free RAM; add `--dtype bf16` to halve it. About 15-22 s per answer on CPU.
-  With an NVIDIA GPU and CUDA torch: `--device cuda`.
-- Commands: `list flagged`, `explain <app_id>`, `help`, `quit`. Anything else is a question.
-- The chat only knows the 600 demo applications (test months 6-7) in `preprocessed/ml_scores_months6_7_demo.csv`
-  and the fact lines it shows. It cannot open files you paste in; it should say a question is not in its facts.
-- Decision support only: it never approves, rejects or blocks an application.
-
-## 5. Tests
-
-```bash
-python -m pytest tests -q
-```
-
-## Data licences
-
-`dataset/SOURCES.md`: BAF (CC BY-NC-SA 4.0), Bitext (CDLA-Sharing-1.0), Alpaca-Cleaned (CC BY 4.0, upstream
-CC BY-NC 4.0). Non-commercial coursework use only.
+The sources have different redistribution conditions. Private data transfer is not permission to redistribute. The continued model Release is temporarily unpublished pending review. Neither the adapter nor its rule-based guard is suitable for autonomous financial decisions.

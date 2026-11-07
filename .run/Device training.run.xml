@@ -1,0 +1,9 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Device training" type="PythonConfigurationType" factoryName="Python">
+    <module name="fraudlm-v2-5060" />
+    <option name="PARAMETERS" value="train" />
+    <option name="SCRIPT_NAME" value="$PROJECT_DIR$/run_device.py" />
+    <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+    <method v="2" />
+  </configuration>
+</component>

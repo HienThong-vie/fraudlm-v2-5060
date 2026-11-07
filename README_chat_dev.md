@@ -1,6 +1,6 @@
 # FraudLM v2 chat demo: developer notes (facts only)
 
-Owner: chat-builder. Not the submitted README; Thông writes that prose. Folder: `llm_ver2/`.
+Developer reference for the original single-source chat. For current multi-source setup, see [README_RTX5060.md](README_RTX5060.md).
 All commands run from `llm_ver2/` with the project venv (`.venv/Scripts/python`) or the conda env `fraudlm2`.
 
 ## Files

@@ -1,151 +1,93 @@
-# FraudLM v2 on an RTX 5060 8 GB
+# FraudLM v2 on RTX 5060
 
-This is the same project model as `fraudlm-v2`: the team's own GPT-2 architecture, OpenAI GPT-2 XL
-weights, and a rank-16 LoRA adapter. It does **continued instruction fine-tuning** on predictions from
-the eight ML projects; it does not replace the model with Qwen and does not retrain GPT-2 XL from zero.
+This project uses a custom GPT-2 XL architecture, pretrained GPT-2 weights and rank-16 LoRA. It supports continued instruction fine-tuning on eight classifiers' outputs, not pretraining from scratch.
 
-Clone the private RTX repository on the PC and open that folder in PyCharm:
+## Windows setup
+
+Clone the repository and open the folder in PyCharm:
 
 ```powershell
 git clone https://github.com/KennyDao1324/fraudlm-v2-5060.git
 cd fraudlm-v2-5060
-```
-
-The repository contains code, configs, tests and documentation. Model weights and the generated
-multi-source dataset are intentionally not in Git; Sections 1 and 3 explain where to put them.
-
-## What it learns
-
-The local builder reads prediction outputs from:
-
-| ID | Project | Data type |
-|---|---|---|
-| `baf_base` | BAF Base | synthetic |
-| `ieee_cis` | IEEE-CIS Fraud Detection | real, anonymized |
-| `paysim` | PaySim | synthetic |
-| `fraud_handbook` | Fraud Detection Handbook | synthetic |
-| `sparkov` | Sparkov | synthetic |
-| `banksim` | BankSim | synthetic |
-| `ulb_creditcard` | ULB Credit Card Fraud | real, anonymized |
-| `elliptic_bitcoin` | Elliptic Bitcoin AML | real, anonymized |
-
-That is five synthetic and three real-anonymized sources. The model sees the dataset, classifier,
-score, frozen review threshold, result, approved signals (when available), and held-out model metrics.
-It never sees the target label in the case prompt. A score is taught as a review signal, not proof.
-
-## 1. Prepare the data on the Mac
-
-Keep this repository beside the eight ML project folders in `Playground`, then run:
-
-```bash
-cd fraudlm-v2-5060
-python preprocess_data/build_multisource_sft.py
-```
-
-The default selects up to 5,000 cases from each source, balanced between flagged and not flagged,
-then mixes in the original FraudLM data to reduce catastrophic forgetting. Outputs are written to
-`dataset_multisource/`. That folder is intentionally ignored by Git because the source licences differ.
-Copy it privately to the same location in the Windows clone; do not publish it.
-
-To deliberately include every available prediction instead, run
-`python preprocess_data/build_multisource_sft.py --max-rows-per-source 0`. This can create hundreds of
-thousands of examples and take much longer to fine-tune; the balanced default covers all eight projects
-without letting the largest CSV dominate the model.
-
-For an easy one-file transfer, package the generated data together with the original adapter on this Mac:
-
-```bash
-python utils/package_pc_inputs.py \
-  --adapter /path/to/original/fraudlm-v2/checkpoint/xl_r16_v1/lora_adapter.pt
-```
-
-Copy `checkpoint/fraudlm-v2-5060-private-inputs.zip` to the PC and extract it in the cloned repository
-root. It creates both `dataset_multisource/` and `checkpoint/base_adapter/xl_r16_v1/` in the correct places.
-The ZIP is private input material and must not be uploaded to GitHub.
-
-## 2. Set up PyCharm on the RTX 5060 PC
-
-Use Python 3.11 and create a project virtual environment. In PyCharm's Terminal (PowerShell):
-
-```powershell
 py -3.11 -m venv .venv
 .venv\Scripts\Activate.ps1
 python -m pip install --upgrade pip
 ```
 
-Install the current Windows CUDA build of PyTorch using the command shown by the official PyTorch
-installer, then install the rest:
+Install a CUDA-compatible PyTorch build using the [official installer](https://pytorch.org/get-started/locally/), then:
 
 ```powershell
-pip install -r requirements-rtx5060.txt
+python -m pip install -r requirements-rtx5060.txt
 python utils/check_cuda.py
 ```
 
-The check must print `CUDA available: True` and your RTX 5060. If it prints False, the CPU-only
-PyTorch wheel is installed.
+The check must report CUDA and the RTX 5060. Select `.venv` as the PyCharm interpreter. Weights, source prediction files and private generated datasets are not included in a clone.
 
-## 3. Supply the existing FraudLM adapter
+## Prepare refreshed data
 
-Copy both files from the original run into:
+On the Mac with the source prediction files installed:
 
-```text
-checkpoint/base_adapter/xl_r16_v1/lora_adapter.pt
-checkpoint/base_adapter/xl_r16_v1/run_config.json
+```bash
+python preprocess_data/build_multisource_sft.py
 ```
 
-They are not committed because the adapter is about 89 MB. You can instead download the original
-`xl_r16_v1` GitHub Release and place the two files there. The rank must stay 16 when continuing this
-adapter.
+The default selects at most 500 cases per source, preserves the original instruction training data, omits model-fact targets and writes `dataset_final_v2/`. Original validation/test contexts exposed during the completed run are screened out using its private training file (`--prior-training-file`); the builder stops if this required audit input is absent. Source paths, prediction-file hashes and original CSV data-row indices are recorded. Earlier data directories remain unchanged for reproducibility.
 
-## 4. Train
+Sources are BAF, IEEE-CIS, PaySim, Fraud Detection Handbook, Sparkov, BankSim, ULB and Elliptic: five synthetic and three real/anonymized sources. Elliptic is an offline cryptocurrency AML benchmark. Observed inputs are not feature attributions. Target labels are excluded from case prompts.
 
-In PyCharm, run the included **Train FraudLM RTX 5060** configuration, or use:
+Some classifier test predictions are used for LLM training. This does not change classifier weights, but those cases are not independent LLM test cases. Original application contexts must be screened for overlap before making held-out claims.
+
+Transfer refreshed data and the completed adapter privately:
+
+```bash
+python utils/package_pc_inputs.py --adapter checkpoint/xl_r16_multidata_5060_v1/lora_adapter.pt
+```
+
+Extract the private ZIP into the Windows repository root. Keep it off GitHub. Redistribution permission remains a separate issue; see [distribution status](DISTRIBUTION.md).
+
+## Train a separate refreshed run
+
+Install the completed adapter and its `run_config.json` in `checkpoint/xl_r16_multidata_5060_v1/`, then:
 
 ```powershell
-python training_model/train_sft.py --config configs/rtx5060_8gb.json
+python training_model/train_sft.py --config configs/rtx5060_final_models.json
 ```
 
-The 8 GB settings are: FP16 frozen base, AMP, gradient checkpointing, micro-batch 1, accumulation 8,
-and 384 input tokens. Output goes to `checkpoint/xl_r16_multidata_5060_v1/`.
+Or choose **Train final models RTX 5060** in PyCharm. This writes `xl_r16_final_models_5060_v1`, leaving the completed run untouched. Settings use FP16 base weights, AMP, gradient checkpointing, batch 1 and accumulation 8. Inspect saved data truncation counters before accepting a run.
 
-To continue an interrupted run, use `--resume` and remove the init adapter for that command:
+Resume with:
 
 ```powershell
-python training_model/train_sft.py --config configs/rtx5060_8gb.json --init_adapter "" --resume
+python training_model/train_sft.py --config configs/rtx5060_final_models.json --init_adapter= --resume auto
 ```
 
-If CUDA reports out of memory, close other GPU applications and retry with `--max_len 256`. Do not
-lower the LoRA rank when starting from the rank-16 adapter. A new run may use rank 8, but it cannot load
-the existing rank-16 weights.
+Initial-adapter provenance is restored automatically. For a new reproducibility experiment, add `--deterministic on` and set `$env:CUBLAS_WORKSPACE_CONFIG=":4096:8"` before starting Python. Strict CUDA repeatability remains unverified; no test is silently skipped to claim success.
 
-## 5. Chat with the trained model
+The historical **Train FraudLM RTX 5060** configuration and `configs/rtx5060_8gb.json` remain for reproducing the completed run, not training refreshed data.
+
+## Chat
 
 ```powershell
-python chat_multisource.py `
-  --adapter checkpoint/xl_r16_multidata_5060_v1/lora_adapter.pt `
-  --max-new-tokens 300
+python chat_multisource.py --adapter checkpoint/xl_r16_multidata_5060_v1/lora_adapter.pt --max-new-tokens 200
 ```
 
-Try:
+The default store is `dataset_final_v2/prediction_store.jsonl`. The completed adapter has not been retrained on it. Try:
 
 ```text
 datasets
+facts baf_base
 list ieee_cis
-explain ieee_cis:3663555
-ask ieee_cis:3663555 What does this score mean and what should I check next?
 ```
 
-The prediction store is a lookup source at chat time. Continued fine-tuning teaches response style and
-fraud concepts, but it is not a database: adding every raw prediction to weights would not guarantee
-exact recall. The chat therefore supplies the selected case facts in the prompt and applies a deterministic
-safety guard to contradictory results, fraud accusations, and automated customer decisions.
+Copy a real key from `list`, then use `explain <key>` or `ask <key> <question>`. Versioned prepared-data IDs are not raw bank transaction IDs. `facts` reads the registry directly. Store/model/threshold mismatches stop startup.
 
-## Files to open in PyCharm
+Every generated answer passes the shared answer guard; case answers also receive contradiction checks. Score-gap calculations use exact decimal arithmetic. Guards are heuristic, not a guarantee of correct or safe advice.
 
-- `training_model/train_sft.py` — continued LoRA training
-- `configs/rtx5060_8gb.json` — 8 GB GPU settings
-- `preprocess_data/build_multisource_sft.py` — builds the eight-source instruction dataset
-- `chat_multisource.py` — prediction-grounded terminal chat
-- `utils/check_cuda.py` — confirms PyTorch can use the RTX GPU
+## Evaluate
 
-Run all tests with `python -m pytest tests -q`.
+```bash
+python evaluation/compare_original_validation.py --device cpu
+python -m pytest tests/test_review_fixes.py tests/test_multisource.py tests/test_multisource_debug.py -q
+```
+
+The comparison uses the same original 500 validation rows for both adapters and separately screens original BAF contexts exposed during continued training. It is diagnostic loss, not an independent semantic-quality test. See [grounding status](FINAL_GROUNDING.md) for generation checks and remaining limitations.

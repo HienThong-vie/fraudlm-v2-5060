@@ -1,0 +1,822 @@
+{
+  "config": {
+    "clustering_k_values": [
+      2,
+      3,
+      4,
+      5,
+      6
+    ],
+    "clustering_sample_rows": 30000,
+    "dataset_files": [
+      "Base.csv",
+      "Variant I.csv",
+      "Variant II.csv",
+      "Variant III.csv",
+      "Variant IV.csv",
+      "Variant V.csv"
+    ],
+    "excluded_features": [
+      "device_fraud_count",
+      "x1",
+      "x2"
+    ],
+    "max_test_rows": 50000,
+    "max_train_rows": 250000,
+    "max_validation_rows": 50000,
+    "n_jobs": -1,
+    "protected_features": [
+      "customer_age",
+      "income",
+      "employment_status"
+    ],
+    "random_seed": 42,
+    "target_column": "fraud_bool",
+    "target_false_positive_rate": 0.05,
+    "test_months": [
+      6,
+      7
+    ],
+    "time_column": "month",
+    "train_months": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ],
+    "tree_estimators": 160,
+    "tree_max_depth": 16,
+    "validation_months": [
+      5
+    ]
+  },
+  "datasets": [
+    {
+      "champion_artifact": "artifacts/base/champion.joblib",
+      "dataset": "Base",
+      "profile": {
+        "additional_columns": [],
+        "columns": 32,
+        "dtypes": {
+          "bank_branch_count_8w": "int64",
+          "bank_months_count": "int64",
+          "credit_risk_score": "int64",
+          "current_address_months_count": "int64",
+          "customer_age": "int64",
+          "date_of_birth_distinct_emails_4w": "int64",
+          "days_since_request": "float64",
+          "device_distinct_emails_8w": "int64",
+          "device_fraud_count": "int64",
+          "device_os": "object",
+          "email_is_free": "int64",
+          "employment_status": "object",
+          "foreign_request": "int64",
+          "fraud_bool": "int64",
+          "has_other_cards": "int64",
+          "housing_status": "object",
+          "income": "float64",
+          "intended_balcon_amount": "float64",
+          "keep_alive_session": "int64",
+          "month": "int64",
+          "name_email_similarity": "float64",
+          "payment_type": "object",
+          "phone_home_valid": "int64",
+          "phone_mobile_valid": "int64",
+          "prev_address_months_count": "int64",
+          "proposed_credit_limit": "float64",
+          "session_length_in_minutes": "float64",
+          "source": "object",
+          "velocity_24h": "float64",
+          "velocity_4w": "float64",
+          "velocity_6h": "float64",
+          "zip_count_4w": "int64"
+        },
+        "duplicate_rows": 0,
+        "fraud_count": 11029,
+        "fraud_rate": 0.011029,
+        "fraud_rate_by_month": {
+          "0": 0.011325883418906675,
+          "1": 0.009387243378780755,
+          "2": 0.008745866154666044,
+          "3": 0.009222451900143107,
+          "4": 0.011371200789405674,
+          "5": 0.01182504630289215,
+          "6": 0.013405073589231566,
+          "7": 0.014745515938167962
+        },
+        "minus_one_counts_all_numeric": {
+          "bank_months_count": 253635,
+          "credit_risk_score": 488,
+          "current_address_months_count": 4254,
+          "device_distinct_emails_8w": 359,
+          "prev_address_months_count": 712920,
+          "session_length_in_minutes": 2015
+        },
+        "missing_cells": 0,
+        "missing_cells_after_sentinel_conversion": 973183,
+        "missing_expected_columns": [],
+        "missing_sentinel_columns": [
+          "bank_months_count",
+          "current_address_months_count",
+          "device_distinct_emails_8w",
+          "intended_balcon_amount",
+          "prev_address_months_count",
+          "session_length_in_minutes"
+        ],
+        "month_counts": {
+          "0": 132440,
+          "1": 127620,
+          "2": 136979,
+          "3": 150936,
+          "4": 127691,
+          "5": 119323,
+          "6": 108168,
+          "7": 96843
+        },
+        "null_counts": {},
+        "rows": 1000000,
+        "sentinel_minus_one_counts": {
+          "bank_months_count": 253635,
+          "current_address_months_count": 4254,
+          "device_distinct_emails_8w": 359,
+          "intended_balcon_amount": 0,
+          "prev_address_months_count": 712920,
+          "session_length_in_minutes": 2015
+        },
+        "sentinel_minus_one_total": 973183
+      },
+      "test_metrics": {
+        "accuracy": 0.94784,
+        "confusion_matrix": [
+          [
+            47031,
+            2267
+          ],
+          [
+            341,
+            361
+          ]
+        ],
+        "f1": 0.2168168168168168,
+        "false_negative": 341,
+        "false_positive": 2267,
+        "false_positive_rate": 0.04598563836261106,
+        "pr_auc": 0.1695067690893528,
+        "precision": 0.1373668188736682,
+        "recall": 0.5142450142450142,
+        "roc_auc": 0.8911958657384434,
+        "threshold": 0.7462441115071242,
+        "true_negative": 47031,
+        "true_positive": 361
+      },
+      "validation_pr_auc": 0.15668939468695933,
+      "winner": "logistic_regression"
+    },
+    {
+      "champion_artifact": "artifacts/variant_i/champion.joblib",
+      "dataset": "Variant I",
+      "profile": {
+        "additional_columns": [],
+        "columns": 32,
+        "dtypes": {
+          "bank_branch_count_8w": "int64",
+          "bank_months_count": "int64",
+          "credit_risk_score": "int64",
+          "current_address_months_count": "int64",
+          "customer_age": "int64",
+          "date_of_birth_distinct_emails_4w": "int64",
+          "days_since_request": "float64",
+          "device_distinct_emails_8w": "int64",
+          "device_fraud_count": "int64",
+          "device_os": "object",
+          "email_is_free": "int64",
+          "employment_status": "object",
+          "foreign_request": "int64",
+          "fraud_bool": "int64",
+          "has_other_cards": "int64",
+          "housing_status": "object",
+          "income": "float64",
+          "intended_balcon_amount": "float64",
+          "keep_alive_session": "int64",
+          "month": "int64",
+          "name_email_similarity": "float64",
+          "payment_type": "object",
+          "phone_home_valid": "int64",
+          "phone_mobile_valid": "int64",
+          "prev_address_months_count": "int64",
+          "proposed_credit_limit": "float64",
+          "session_length_in_minutes": "float64",
+          "source": "object",
+          "velocity_24h": "float64",
+          "velocity_4w": "float64",
+          "velocity_6h": "float64",
+          "zip_count_4w": "int64"
+        },
+        "duplicate_rows": 0,
+        "fraud_count": 11029,
+        "fraud_rate": 0.011029,
+        "fraud_rate_by_month": {
+          "0": 0.011325883418906675,
+          "1": 0.009387243378780755,
+          "2": 0.008745866154666044,
+          "3": 0.009222329698286715,
+          "4": 0.011371200789405674,
+          "5": 0.011825145404870854,
+          "6": 0.013405073589231566,
+          "7": 0.014745668201813262
+        },
+        "minus_one_counts_all_numeric": {
+          "bank_months_count": 254905,
+          "credit_risk_score": 537,
+          "current_address_months_count": 4442,
+          "device_distinct_emails_8w": 318,
+          "prev_address_months_count": 704367,
+          "session_length_in_minutes": 1842
+        },
+        "missing_cells": 0,
+        "missing_cells_after_sentinel_conversion": 965874,
+        "missing_expected_columns": [],
+        "missing_sentinel_columns": [
+          "bank_months_count",
+          "current_address_months_count",
+          "device_distinct_emails_8w",
+          "intended_balcon_amount",
+          "prev_address_months_count",
+          "session_length_in_minutes"
+        ],
+        "month_counts": {
+          "0": 132440,
+          "1": 127620,
+          "2": 136979,
+          "3": 150938,
+          "4": 127691,
+          "5": 119322,
+          "6": 108168,
+          "7": 96842
+        },
+        "null_counts": {},
+        "rows": 1000000,
+        "sentinel_minus_one_counts": {
+          "bank_months_count": 254905,
+          "current_address_months_count": 4442,
+          "device_distinct_emails_8w": 318,
+          "intended_balcon_amount": 0,
+          "prev_address_months_count": 704367,
+          "session_length_in_minutes": 1842
+        },
+        "sentinel_minus_one_total": 965874
+      },
+      "test_metrics": {
+        "accuracy": 0.94948,
+        "confusion_matrix": [
+          [
+            47183,
+            2115
+          ],
+          [
+            411,
+            291
+          ]
+        ],
+        "f1": 0.18725868725868725,
+        "false_negative": 411,
+        "false_positive": 2115,
+        "false_positive_rate": 0.04290234897967463,
+        "pr_auc": 0.1404102334750469,
+        "precision": 0.12094763092269327,
+        "recall": 0.41452991452991456,
+        "roc_auc": 0.8680231417766409,
+        "threshold": 0.7392193115893418,
+        "true_negative": 47183,
+        "true_positive": 291
+      },
+      "validation_pr_auc": 0.14541648149972558,
+      "winner": "logistic_regression"
+    },
+    {
+      "champion_artifact": "artifacts/variant_ii/champion.joblib",
+      "dataset": "Variant II",
+      "profile": {
+        "additional_columns": [],
+        "columns": 32,
+        "dtypes": {
+          "bank_branch_count_8w": "int64",
+          "bank_months_count": "int64",
+          "credit_risk_score": "int64",
+          "current_address_months_count": "int64",
+          "customer_age": "int64",
+          "date_of_birth_distinct_emails_4w": "int64",
+          "days_since_request": "float64",
+          "device_distinct_emails_8w": "int64",
+          "device_fraud_count": "int64",
+          "device_os": "object",
+          "email_is_free": "int64",
+          "employment_status": "object",
+          "foreign_request": "int64",
+          "fraud_bool": "int64",
+          "has_other_cards": "int64",
+          "housing_status": "object",
+          "income": "float64",
+          "intended_balcon_amount": "float64",
+          "keep_alive_session": "int64",
+          "month": "int64",
+          "name_email_similarity": "float64",
+          "payment_type": "object",
+          "phone_home_valid": "int64",
+          "phone_mobile_valid": "int64",
+          "prev_address_months_count": "int64",
+          "proposed_credit_limit": "float64",
+          "session_length_in_minutes": "float64",
+          "source": "object",
+          "velocity_24h": "float64",
+          "velocity_4w": "float64",
+          "velocity_6h": "float64",
+          "zip_count_4w": "int64"
+        },
+        "duplicate_rows": 0,
+        "fraud_count": 11029,
+        "fraud_rate": 0.011029,
+        "fraud_rate_by_month": {
+          "0": 0.011325883418906675,
+          "1": 0.009387243378780755,
+          "2": 0.008745930003358203,
+          "3": 0.0092223907988101,
+          "4": 0.011371200789405674,
+          "5": 0.011824947202574503,
+          "6": 0.013405073589231566,
+          "7": 0.014745668201813262
+        },
+        "minus_one_counts_all_numeric": {
+          "bank_months_count": 241872,
+          "credit_risk_score": 435,
+          "current_address_months_count": 3488,
+          "device_distinct_emails_8w": 336,
+          "prev_address_months_count": 759415,
+          "session_length_in_minutes": 2277
+        },
+        "missing_cells": 0,
+        "missing_cells_after_sentinel_conversion": 1007388,
+        "missing_expected_columns": [],
+        "missing_sentinel_columns": [
+          "bank_months_count",
+          "current_address_months_count",
+          "device_distinct_emails_8w",
+          "intended_balcon_amount",
+          "prev_address_months_count",
+          "session_length_in_minutes"
+        ],
+        "month_counts": {
+          "0": 132440,
+          "1": 127620,
+          "2": 136978,
+          "3": 150937,
+          "4": 127691,
+          "5": 119324,
+          "6": 108168,
+          "7": 96842
+        },
+        "null_counts": {},
+        "rows": 1000000,
+        "sentinel_minus_one_counts": {
+          "bank_months_count": 241872,
+          "current_address_months_count": 3488,
+          "device_distinct_emails_8w": 336,
+          "intended_balcon_amount": 0,
+          "prev_address_months_count": 759415,
+          "session_length_in_minutes": 2277
+        },
+        "sentinel_minus_one_total": 1007388
+      },
+      "test_metrics": {
+        "accuracy": 0.9458,
+        "confusion_matrix": [
+          [
+            46961,
+            2337
+          ],
+          [
+            373,
+            329
+          ]
+        ],
+        "f1": 0.19536817102137768,
+        "false_negative": 373,
+        "false_positive": 2337,
+        "false_positive_rate": 0.04740557426264757,
+        "pr_auc": 0.15976748854703984,
+        "precision": 0.12340585146286571,
+        "recall": 0.4686609686609687,
+        "roc_auc": 0.8723722661610608,
+        "threshold": 0.7389996017060599,
+        "true_negative": 46961,
+        "true_positive": 329
+      },
+      "validation_pr_auc": 0.12404585526599327,
+      "winner": "logistic_regression"
+    },
+    {
+      "champion_artifact": "artifacts/variant_iii/champion.joblib",
+      "dataset": "Variant III",
+      "profile": {
+        "additional_columns": [
+          "x1",
+          "x2"
+        ],
+        "columns": 34,
+        "dtypes": {
+          "bank_branch_count_8w": "int64",
+          "bank_months_count": "int64",
+          "credit_risk_score": "int64",
+          "current_address_months_count": "int64",
+          "customer_age": "int64",
+          "date_of_birth_distinct_emails_4w": "int64",
+          "days_since_request": "float64",
+          "device_distinct_emails_8w": "int64",
+          "device_fraud_count": "int64",
+          "device_os": "object",
+          "email_is_free": "int64",
+          "employment_status": "object",
+          "foreign_request": "int64",
+          "fraud_bool": "int64",
+          "has_other_cards": "int64",
+          "housing_status": "object",
+          "income": "float64",
+          "intended_balcon_amount": "float64",
+          "keep_alive_session": "int64",
+          "month": "int64",
+          "name_email_similarity": "float64",
+          "payment_type": "object",
+          "phone_home_valid": "int64",
+          "phone_mobile_valid": "int64",
+          "prev_address_months_count": "int64",
+          "proposed_credit_limit": "float64",
+          "session_length_in_minutes": "float64",
+          "source": "object",
+          "velocity_24h": "float64",
+          "velocity_4w": "float64",
+          "velocity_6h": "float64",
+          "x1": "float64",
+          "x2": "float64",
+          "zip_count_4w": "int64"
+        },
+        "duplicate_rows": 0,
+        "fraud_count": 11030,
+        "fraud_rate": 0.01103,
+        "fraud_rate_by_month": {
+          "0": 0.011696198735410992,
+          "1": 0.008909743726134615,
+          "2": 0.007320510752876666,
+          "3": 0.01364455176114369,
+          "4": 0.01568422635298214,
+          "5": 0.00909855182513424,
+          "6": 0.01225641477823825,
+          "7": 0.00931994695965145
+        },
+        "minus_one_counts_all_numeric": {
+          "bank_months_count": 247242,
+          "credit_risk_score": 402,
+          "current_address_months_count": 3473,
+          "device_distinct_emails_8w": 332,
+          "prev_address_months_count": 762005,
+          "session_length_in_minutes": 2256
+        },
+        "missing_cells": 0,
+        "missing_cells_after_sentinel_conversion": 1015308,
+        "missing_expected_columns": [],
+        "missing_sentinel_columns": [
+          "bank_months_count",
+          "current_address_months_count",
+          "device_distinct_emails_8w",
+          "intended_balcon_amount",
+          "prev_address_months_count",
+          "session_length_in_minutes"
+        ],
+        "month_counts": {
+          "0": 80026,
+          "1": 105278,
+          "2": 142613,
+          "3": 156546,
+          "4": 126369,
+          "5": 147496,
+          "6": 136092,
+          "7": 105580
+        },
+        "null_counts": {},
+        "rows": 1000000,
+        "sentinel_minus_one_counts": {
+          "bank_months_count": 247242,
+          "current_address_months_count": 3473,
+          "device_distinct_emails_8w": 332,
+          "intended_balcon_amount": 0,
+          "prev_address_months_count": 762005,
+          "session_length_in_minutes": 2256
+        },
+        "sentinel_minus_one_total": 1015308
+      },
+      "test_metrics": {
+        "accuracy": 0.94176,
+        "confusion_matrix": [
+          [
+            46822,
+            2629
+          ],
+          [
+            283,
+            266
+          ]
+        ],
+        "f1": 0.15447154471544716,
+        "false_negative": 283,
+        "false_positive": 2629,
+        "false_positive_rate": 0.053163737841499664,
+        "pr_auc": 0.11316544554955299,
+        "precision": 0.0918825561312608,
+        "recall": 0.48451730418943534,
+        "roc_auc": 0.8609412957184274,
+        "threshold": 0.7755046408147935,
+        "true_negative": 46822,
+        "true_positive": 266
+      },
+      "validation_pr_auc": 0.1122939162030467,
+      "winner": "logistic_regression"
+    },
+    {
+      "champion_artifact": "artifacts/variant_iv/champion.joblib",
+      "dataset": "Variant IV",
+      "profile": {
+        "additional_columns": [],
+        "columns": 32,
+        "dtypes": {
+          "bank_branch_count_8w": "int64",
+          "bank_months_count": "int64",
+          "credit_risk_score": "int64",
+          "current_address_months_count": "int64",
+          "customer_age": "int64",
+          "date_of_birth_distinct_emails_4w": "int64",
+          "days_since_request": "float64",
+          "device_distinct_emails_8w": "int64",
+          "device_fraud_count": "int64",
+          "device_os": "object",
+          "email_is_free": "int64",
+          "employment_status": "object",
+          "foreign_request": "int64",
+          "fraud_bool": "int64",
+          "has_other_cards": "int64",
+          "housing_status": "object",
+          "income": "float64",
+          "intended_balcon_amount": "float64",
+          "keep_alive_session": "int64",
+          "month": "int64",
+          "name_email_similarity": "float64",
+          "payment_type": "object",
+          "phone_home_valid": "int64",
+          "phone_mobile_valid": "int64",
+          "prev_address_months_count": "int64",
+          "proposed_credit_limit": "float64",
+          "session_length_in_minutes": "float64",
+          "source": "object",
+          "velocity_24h": "float64",
+          "velocity_4w": "float64",
+          "velocity_6h": "float64",
+          "zip_count_4w": "int64"
+        },
+        "duplicate_rows": 0,
+        "fraud_count": 11030,
+        "fraud_rate": 0.01103,
+        "fraud_rate_by_month": {
+          "0": 0.011696198735410992,
+          "1": 0.00890982835757098,
+          "2": 0.007327419976860779,
+          "3": 0.013638338103025347,
+          "4": 0.01568410223945557,
+          "5": 0.00909855182513424,
+          "6": 0.01225641477823825,
+          "7": 0.00931994695965145
+        },
+        "minus_one_counts_all_numeric": {
+          "bank_months_count": 247181,
+          "credit_risk_score": 399,
+          "current_address_months_count": 3479,
+          "device_distinct_emails_8w": 334,
+          "prev_address_months_count": 761771,
+          "session_length_in_minutes": 2262
+        },
+        "missing_cells": 0,
+        "missing_cells_after_sentinel_conversion": 1015027,
+        "missing_expected_columns": [],
+        "missing_sentinel_columns": [
+          "bank_months_count",
+          "current_address_months_count",
+          "device_distinct_emails_8w",
+          "intended_balcon_amount",
+          "prev_address_months_count",
+          "session_length_in_minutes"
+        ],
+        "month_counts": {
+          "0": 80026,
+          "1": 105277,
+          "2": 142615,
+          "3": 156544,
+          "4": 126370,
+          "5": 147496,
+          "6": 136092,
+          "7": 105580
+        },
+        "null_counts": {},
+        "rows": 1000000,
+        "sentinel_minus_one_counts": {
+          "bank_months_count": 247181,
+          "current_address_months_count": 3479,
+          "device_distinct_emails_8w": 334,
+          "intended_balcon_amount": 0,
+          "prev_address_months_count": 761771,
+          "session_length_in_minutes": 2262
+        },
+        "sentinel_minus_one_total": 1015027
+      },
+      "test_metrics": {
+        "accuracy": 0.93972,
+        "confusion_matrix": [
+          [
+            46755,
+            2696
+          ],
+          [
+            318,
+            231
+          ]
+        ],
+        "f1": 0.13291139240506328,
+        "false_negative": 318,
+        "false_positive": 2696,
+        "false_positive_rate": 0.054518614385957814,
+        "pr_auc": 0.10868998419883164,
+        "precision": 0.07892039631021523,
+        "recall": 0.4207650273224044,
+        "roc_auc": 0.842050854999921,
+        "threshold": 0.7641327431637311,
+        "true_negative": 46755,
+        "true_positive": 231
+      },
+      "validation_pr_auc": 0.11488434105488135,
+      "winner": "logistic_regression"
+    },
+    {
+      "champion_artifact": "artifacts/variant_v/champion.joblib",
+      "dataset": "Variant V",
+      "profile": {
+        "additional_columns": [
+          "x1",
+          "x2"
+        ],
+        "columns": 34,
+        "dtypes": {
+          "bank_branch_count_8w": "int64",
+          "bank_months_count": "int64",
+          "credit_risk_score": "int64",
+          "current_address_months_count": "int64",
+          "customer_age": "int64",
+          "date_of_birth_distinct_emails_4w": "int64",
+          "days_since_request": "float64",
+          "device_distinct_emails_8w": "int64",
+          "device_fraud_count": "int64",
+          "device_os": "object",
+          "email_is_free": "int64",
+          "employment_status": "object",
+          "foreign_request": "int64",
+          "fraud_bool": "int64",
+          "has_other_cards": "int64",
+          "housing_status": "object",
+          "income": "float64",
+          "intended_balcon_amount": "float64",
+          "keep_alive_session": "int64",
+          "month": "int64",
+          "name_email_similarity": "float64",
+          "payment_type": "object",
+          "phone_home_valid": "int64",
+          "phone_mobile_valid": "int64",
+          "prev_address_months_count": "int64",
+          "proposed_credit_limit": "float64",
+          "session_length_in_minutes": "float64",
+          "source": "object",
+          "velocity_24h": "float64",
+          "velocity_4w": "float64",
+          "velocity_6h": "float64",
+          "x1": "float64",
+          "x2": "float64",
+          "zip_count_4w": "int64"
+        },
+        "duplicate_rows": 0,
+        "fraud_count": 11030,
+        "fraud_rate": 0.01103,
+        "fraud_rate_by_month": {
+          "0": 0.011696198735410992,
+          "1": 0.008909743726134615,
+          "2": 0.007320459421936135,
+          "3": 0.01364455176114369,
+          "4": 0.01568435046847303,
+          "5": 0.00909855182513424,
+          "6": 0.01225641477823825,
+          "7": 0.00931994695965145
+        },
+        "minus_one_counts_all_numeric": {
+          "bank_months_count": 246922,
+          "credit_risk_score": 397,
+          "current_address_months_count": 3381,
+          "device_distinct_emails_8w": 342,
+          "prev_address_months_count": 761730,
+          "session_length_in_minutes": 2165
+        },
+        "missing_cells": 0,
+        "missing_cells_after_sentinel_conversion": 1014540,
+        "missing_expected_columns": [],
+        "missing_sentinel_columns": [
+          "bank_months_count",
+          "current_address_months_count",
+          "device_distinct_emails_8w",
+          "intended_balcon_amount",
+          "prev_address_months_count",
+          "session_length_in_minutes"
+        ],
+        "month_counts": {
+          "0": 80026,
+          "1": 105278,
+          "2": 142614,
+          "3": 156546,
+          "4": 126368,
+          "5": 147496,
+          "6": 136092,
+          "7": 105580
+        },
+        "null_counts": {},
+        "rows": 1000000,
+        "sentinel_minus_one_counts": {
+          "bank_months_count": 246922,
+          "current_address_months_count": 3381,
+          "device_distinct_emails_8w": 342,
+          "intended_balcon_amount": 0,
+          "prev_address_months_count": 761730,
+          "session_length_in_minutes": 2165
+        },
+        "sentinel_minus_one_total": 1014540
+      },
+      "test_metrics": {
+        "accuracy": 0.9434,
+        "confusion_matrix": [
+          [
+            46923,
+            2528
+          ],
+          [
+            302,
+            247
+          ]
+        ],
+        "f1": 0.1486161251504212,
+        "false_negative": 302,
+        "false_positive": 2528,
+        "false_positive_rate": 0.05112131200582395,
+        "pr_auc": 0.09795790430709603,
+        "precision": 0.08900900900900902,
+        "recall": 0.44990892531876137,
+        "roc_auc": 0.8599932541638704,
+        "threshold": 0.7609441731006081,
+        "true_negative": 46923,
+        "true_positive": 247
+      },
+      "validation_pr_auc": 0.10578029118683402,
+      "winner": "logistic_regression"
+    }
+  ],
+  "leakage_controls": {
+    "development_months": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "fixed_random_seed": 42,
+    "imbalance_control": "class_weight applied by estimators during training only",
+    "preprocessing_fit_scope": "sklearn Pipeline fitted on training rows only",
+    "protected_features_excluded_from_models": [
+      "customer_age",
+      "income",
+      "employment_status"
+    ],
+    "target_excluded_from_features": true,
+    "temporal_partitions_disjoint": true,
+    "test_data_used_for_selection": false,
+    "test_months": [
+      6,
+      7
+    ],
+    "time_column_excluded_from_features": true
+  },
+  "notice": "Educational decision-support prototype trained on synthetic BAF data. It must not approve, reject, or block a real bank application.",
+  "production_artifact": "artifacts/production_model.joblib",
+  "selection_rule": "Best validation PR-AUC per dataset; production model is Base champion.",
+  "test_data_not_used_for_selection": true
+}
