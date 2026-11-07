@@ -46,7 +46,7 @@ In PyCharm select the working interpreter and choose **Device chat**. You do not
 python run_device.py compare
 ```
 
-This runs both adapters on the same original 500 validation rows and separately reports an overlap-screened subset. It can take a long time on CPU. A comparison was already started locally during verification; do not start a duplicate while it is still running. Only a JSON containing both model results is a completed comparison.
+This reruns both adapters on the same original 500 validation rows and separately reports an overlap-screened subset. The comparison already completed during verification and is saved in `evaluation/original_validation_comparison.json`; rerunning is optional and can take a long time on CPU. Both model results must be present before interpreting a new comparison.
 
 ## Optional CPU training
 
