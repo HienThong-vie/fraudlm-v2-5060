@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import re
+from decimal import Decimal
 
 MULTISOURCE_RULES = (
     "Rules: support a fraud analyst; never approve, reject, block or freeze anything; "
@@ -62,16 +63,55 @@ def load_prediction_store(path) -> dict[str, dict]:
     return cases
 
 
+def calculated_threshold_answer(question: str, case: dict) -> str | None:
+    """Answer score/threshold gap questions with stored numbers, never model arithmetic."""
+    has_threshold = re.search(r"\b(?:threshold|cutoff|cut-off)\b", question, re.I)
+    has_score = re.search(r"\bscore\b", question, re.I)
+    asks_gap = re.search(r"\b(?:difference|gap|distance|margin)\b", question, re.I)
+    asks_distance = re.search(r"\bhow\s+(?:far|much)\b", question, re.I)
+    has_comparison = has_score or re.search(r"\b(?:above|below|higher|lower|away|apart)\b", question, re.I)
+    if not has_threshold or not ((has_score and asks_gap) or (asks_distance and has_comparison)):
+        return None
+    score = Decimal(str(case["score"]))
+    threshold = Decimal(str(case["threshold"]))
+    gap = threshold - score
+    base = f"The model score is {score:.6f} and the review threshold is {threshold:.6f}. "
+    if gap > 0:
+        return base + f"The score is {gap:.6f} below the review threshold, so it is not flagged."
+    if gap < 0:
+        return base + f"The score is {-gap:.6f} above the review threshold, so it is flagged for review."
+    return base + "The difference is 0.000000: the score equals the threshold, so it is flagged for review."
+
+
 _UNSAFE_DECISION = re.compile(
-    r"\b(?:approve|approved|reject|rejected|block|blocked|freeze|frozen|close the account|deny|denied)\b", re.I)
+    # A frozen threshold is a fixed model setting, not a customer action.
+    r"\b(?:approve|approved|reject|rejected|block|blocked|freeze|"
+    r"frozen(?!\s+(?:review\s+)?threshold\b)|close the account|deny|denied)\b", re.I)
 _FRAUD_VERDICT = re.compile(r"\b(?:is|was|definitely|proves?|confirmed)\s+(?:a\s+)?fraud(?:ulent)?\b", re.I)
+
+
+def prediction_guard_reasons(text: str, case: dict) -> list[str]:
+    """Report the exact rules that would replace this model answer."""
+    raw = (text or "").strip()
+    reasons = []
+    if not raw:
+        reasons.append("Empty model response")
+    decision = _UNSAFE_DECISION.search(raw)
+    if decision:
+        reasons.append(f"Decision-language rule matched {decision.group(0)!r}")
+    verdict = _FRAUD_VERDICT.search(raw)
+    if verdict:
+        reasons.append(f"Fraud-verdict rule matched {verdict.group(0)!r}")
+    flagged = float(case["score"]) >= float(case["threshold"])
+    contradictory = (("not flagged" in raw.lower() and flagged) or
+                     ("flagged for review" in raw.lower() and not flagged))
+    if contradictory:
+        reasons.append("Flagged status contradicts the stored score/threshold comparison")
+    return reasons
 
 
 def guard_prediction_answer(text: str, case: dict, intent: str = "explain") -> tuple[str, bool]:
     """Replace an unsafe/contradictory grounded answer with a deterministic fact-only answer."""
     raw = (text or "").strip()
-    flagged = float(case["score"]) >= float(case["threshold"])
-    contradictory = (("not flagged" in raw.lower() and flagged) or
-                     ("flagged for review" in raw.lower() and not flagged))
-    unsafe = not raw or bool(_UNSAFE_DECISION.search(raw)) or bool(_FRAUD_VERDICT.search(raw)) or contradictory
+    unsafe = bool(prediction_guard_reasons(raw, case))
     return (prediction_answer(case, intent), True) if unsafe else (raw, False)
