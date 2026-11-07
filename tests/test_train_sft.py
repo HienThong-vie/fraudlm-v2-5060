@@ -7,7 +7,7 @@ Locally the exit codes 3 (time limit) and 2 (NaN abort) stay so shell scripts ca
 The last log line must say why the run stopped and what run_summary.json / progress.json record.
 
 Author: FraudLM v2 team (COS30049.2-1).
-Written with help from Claude Code (Anthropic); reviewed by Thong.
+
 """
 
 import json

@@ -19,7 +19,7 @@ How to run
 Author: FraudLM v2 team (COS30049.2-1).
 Uses the model, LoRA and weight-loading code that follows Raschka, S. (2024) *Build a Large
 Language Model (From Scratch)*, Manning; code repo Apache-2.0.
-Written with help from Claude Code (Anthropic); reviewed by Thong.
+
 """
 
 import argparse

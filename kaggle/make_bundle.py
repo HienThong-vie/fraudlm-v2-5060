@@ -14,7 +14,7 @@ Usage (from llm_ver2/):
 Re-run it after any change to the bundled modules (the bundle is a generated file; never edit it).
 
 Author: FraudLM v2 team (COS30049.2-1).
-Written with help from Claude Code (Anthropic); reviewed by Thong.
+
 """
 
 import argparse
@@ -113,7 +113,7 @@ PREAMBLE = '''\
 #
 # Author: FraudLM v2 team (COS30049.2-1). Model/LoRA/loader code follows Raschka, S. (2024)
 # *Build a Large Language Model (From Scratch)*, Manning; code repo Apache-2.0.
-# Written with help from Claude Code (Anthropic); reviewed by Thong.
+#
 # =====================================================================================
 
 # -------------------------------------------------------------------------------------

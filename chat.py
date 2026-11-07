@@ -16,7 +16,7 @@ Commands: explain <app_id> | /app <app_id> | /none | list | help | quit  (free t
 Author: FraudLM v2 team (COS30049.2-1).
 Generation and weight loading come from utils/ (Raschka, S. (2024) Build a Large Language Model (From
 Scratch), Manning; code repo Apache-2.0).
-Written with help from Claude Code (Anthropic); reviewed by Thong.
+
 """
 
 from __future__ import annotations

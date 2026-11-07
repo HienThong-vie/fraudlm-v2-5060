@@ -28,7 +28,7 @@ Outputs in --out (default evaluation/results/):
 Author: FraudLM v2 team (COS30049.2-1).
 Generation and masked loss follow Raschka, S. (2024) *Build a Large Language Model (From Scratch)*, Manning,
 chapters 5 and 7; code repo Apache-2.0.
-Written with help from Claude Code (Anthropic); reviewed by Thong.
+
 """
 
 from __future__ import annotations

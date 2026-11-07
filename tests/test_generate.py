@@ -2,7 +2,7 @@
 Tests for utils/generate.py: tokeniser round trip, greedy determinism, EOS stop, context crop, top-k.
 
 Author: FraudLM v2 team (COS30049.2-1).
-Written with help from Claude Code (Anthropic); reviewed by Thong.
+
 """
 
 import pytest

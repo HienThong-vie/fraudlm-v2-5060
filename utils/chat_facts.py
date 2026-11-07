@@ -13,7 +13,7 @@ card in preprocessed/_ml_repo. Nothing is chosen by the model; selection is dete
 random generator picks the distractor lines, as the training builder did with its own generator).
 
 Author: FraudLM v2 team (COS30049.2-1).
-Written with help from Claude Code (Anthropic); reviewed by Thong.
+
 """
 
 from __future__ import annotations

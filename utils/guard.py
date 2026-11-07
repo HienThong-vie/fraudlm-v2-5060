@@ -17,7 +17,7 @@ one breaks the policy.
 
 Author: FraudLM v2 team (COS30049.2-1).
 Ideas adapted (not imported) from the first FraudLM route's guard (llm/src/fraudlm/infer/guard.py).
-Written with help from Claude Code (Anthropic); reviewed by Thong.
+
 """
 
 from __future__ import annotations

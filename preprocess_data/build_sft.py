@@ -20,7 +20,7 @@ in two splits; the test split mixes seen and held-out question phrasings (held-o
 Size is a CLI parameter:  --n-train 12000 --n-val 500 --n-test 500   (mix via --mix)
 Run from llm_ver2/:  .venv/Scripts/python -m preprocess_data.build_sft
 
-Author: FraudLM v2 team (COS30049.2-1). Written with help from Claude Code (Anthropic); reviewed by Thong.
+Author: FraudLM v2 team (COS30049.2-1).
 """
 
 from __future__ import annotations

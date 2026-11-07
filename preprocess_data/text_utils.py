@@ -1,6 +1,6 @@
 """Small text helpers shared by the template modules (list joining, factor sentences).
 
-Author: FraudLM v2 team (COS30049.2-1). Written with help from Claude Code (Anthropic); reviewed by Thong.
+Author: FraudLM v2 team (COS30049.2-1).
 """
 
 from __future__ import annotations

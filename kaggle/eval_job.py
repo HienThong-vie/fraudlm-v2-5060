@@ -23,7 +23,7 @@ Usage
               (script kernel: the lead prepends `import sys; sys.argv = [...]`; every option is a flag)
 
 Author: FraudLM v2 team (COS30049.2-1).
-Written with help from Claude Code (Anthropic); reviewed by Thong.
+
 """
 
 import argparse

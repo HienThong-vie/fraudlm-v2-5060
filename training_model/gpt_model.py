@@ -7,7 +7,7 @@ weights (small / medium / large / xl). No `transformers` model classes are used 
 Author: FraudLM v2 team (COS30049.2-1).
 Architecture follows Raschka, S. (2024) *Build a Large Language Model (From Scratch)*, Manning,
 chapters 3-4; code repo Apache-2.0.
-Written with help from Claude Code (Anthropic); reviewed by Thong.
+
 """
 
 import math

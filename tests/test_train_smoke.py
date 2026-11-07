@@ -9,7 +9,7 @@ adapter is saved, a run killed after step 7 resumes from the step-5 checkpoint a
 loss trajectory and weights as an uninterrupted run, and the --max_hours guard saves and resumes.
 
 Author: FraudLM v2 team (COS30049.2-1).
-Written with help from Claude Code (Anthropic); reviewed by Thong.
+
 """
 
 import hashlib

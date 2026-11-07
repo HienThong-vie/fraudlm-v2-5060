@@ -5,7 +5,7 @@ accusations, looping output, 'probability' rewrite) and a check that the guard n
 reference answers of the fine-tuning data.
 
 Author: FraudLM v2 team (COS30049.2-1).
-Written with help from Claude Code (Anthropic); reviewed by Thong.
+
 """
 
 import json
