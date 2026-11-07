@@ -148,6 +148,10 @@ def load_pretrained_gpt2(size, cache_dir="checkpoint/pretrained", device="cpu", 
     for k in list(ours):
         if k != "out_head.weight":
             ours[k] = ours[k].to(device=device, dtype=dtype).contiguous()
+            if k == 'tok_emb.weight' and torch.device(device).type == 'cpu':
+                # Own the tied output matrix rather than retaining mapped-file storage.
+                # This also gives single-token CPU linear operations allocator-aligned storage.
+                ours[k] = ours[k].clone()
     ours["out_head.weight"] = ours["tok_emb.weight"]  # tied: reuse, do not convert a second copy
 
     # assign=True swaps the meta tensors for the real ones (no extra copy).

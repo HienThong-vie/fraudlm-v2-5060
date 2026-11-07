@@ -125,7 +125,7 @@ DEFAULTS = {
 # Settings that must not change when a run is resumed (they change the maths or the batch order).
 RESUME_LOCKED = ["size", "lora_rank", "lora_alpha", "lora_targets", "base_dtype", "micro_batch",
                  "grad_accum", "max_len", "epochs", "lr", "min_lr_ratio", "warmup_frac", "weight_decay",
-                 "seed", "max_steps", "max_train_rows", "data_sha256", "init_adapter_sha256"]
+                 "seed", "max_steps", "max_train_rows", "data_sha256", "init_adapter_sha256", "deterministic"]
 
 # Contract columns (PLAN 3) first, then two extra GradScaler columns (G4 review R7).
 LOG_COLUMNS = ["step", "epoch", "train_loss", "val_loss", "lr", "tokens_seen", "elapsed_s",
@@ -495,6 +495,7 @@ def train(cfg):
     resume_dir = find_resume_dir(cfg["resume"], run_dir, cfg["run_id"])
     if resume_dir is not None:
         old_cfg = json.loads((resume_dir / "run_config.json").read_text(encoding="utf-8"))
+        old_cfg.setdefault('deterministic', False)
         cfg['init_adapter_sha256'] = old_cfg.get('init_adapter_sha256', '')
         cfg['init_adapter'] = old_cfg.get('init_adapter', '')
         changed = {k: (old_cfg.get(k), cfg.get(k)) for k in RESUME_LOCKED if old_cfg.get(k) != cfg.get(k)}
