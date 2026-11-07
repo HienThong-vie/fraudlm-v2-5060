@@ -132,10 +132,20 @@ def build(args) -> dict:
     for case in all_cases:
         splits[split_name(case["case_key"])].append(make_example(case))
     include_original = not args.no_original
+    overlap_excluded = {}
     if include_original:
+        prior = Path(args.prior_training_file)
+        if not prior.is_file():
+            raise FileNotFoundError('Prior continued-training data are required to screen original validation/test contexts: ' + str(prior))
+        prior_rows = json.loads(prior.read_text(encoding='utf-8'))
+        from evaluation.compare_original_validation import screen
         for name in splits:
             original = ROOT / "dataset" / f"fraudlm_sft_{name}.json"
-            splits[name].extend(json.loads(original.read_text(encoding="utf-8")))
+            original_rows = json.loads(original.read_text(encoding="utf-8"))
+            if name in ('val', 'test'):
+                original_rows, removed = screen(original_rows, prior_rows)
+                overlap_excluded[name] = len(removed)
+            splits[name].extend(original_rows)
 
     rng = random.Random(args.seed)
     for name, rows in splits.items():
@@ -150,6 +160,8 @@ def build(args) -> dict:
         "split_rows": {k: len(v) for k, v in splits.items()},
         "includes_original_fraudlm_data": include_original,
         'model_fact_training_rows': 0,
+        'original_overlap_excluded': overlap_excluded,
+        'prior_training_sha256': hashlib.sha256(Path(args.prior_training_file).read_bytes()).hexdigest() if include_original else None,
         'generated_file_sha256': {name: hashlib.sha256((output/name).read_bytes()).hexdigest()
                                   for name in ('fraudlm_sft_train.json', 'fraudlm_sft_val.json', 'fraudlm_sft_test.json', 'prediction_store.jsonl')},
         'registry_sha256': hashlib.sha256(registry_path.read_bytes()).hexdigest(),
@@ -172,6 +184,8 @@ def parser() -> argparse.ArgumentParser:
                     help="balanced cap per source; 0 means every prediction and can be very large")
     ap.add_argument("--seed", type=int, default=42)
     ap.add_argument("--no-original", action="store_true", help="do not mix the original FraudLM instruction rows")
+    ap.add_argument('--prior-training-file', default=str(ROOT/'dataset_multisource/fraudlm_sft_train.json'),
+                    help='Completed continued-run training rows used for original validation/test overlap screening')
     return ap
 
 
