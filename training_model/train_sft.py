@@ -97,6 +97,7 @@ DEFAULTS = {
     "weight_decay": 0.0,           # LoRA adapters are small; no decay needed
     "clip": 1.0,
     "seed": 42,
+    "deterministic": False,
     # evaluation, logging, checkpoints
     "eval_every": 200,             # optimiser steps
     "eval_rows": 200,              # fixed val subset for the periodic val loss
@@ -414,6 +415,11 @@ def pick_samples(val_rows):
 def train(cfg):
     """Run (or resume) one fine-tuning run. Returns "done", "time_limit" or "nan"."""
     session_start = time.time()
+    if cfg['deterministic']:
+        os.environ.setdefault('CUBLAS_WORKSPACE_CONFIG', ':4096:8')
+        torch.use_deterministic_algorithms(True)
+        torch.backends.cudnn.benchmark = False
+        torch.backends.cudnn.deterministic = True
     run_dir = Path(cfg["out_dir"]) / cfg["run_id"]
     use_cuda = torch.cuda.is_available()
     device = torch.device("cuda" if use_cuda else "cpu")
@@ -489,6 +495,8 @@ def train(cfg):
     resume_dir = find_resume_dir(cfg["resume"], run_dir, cfg["run_id"])
     if resume_dir is not None:
         old_cfg = json.loads((resume_dir / "run_config.json").read_text(encoding="utf-8"))
+        cfg['init_adapter_sha256'] = old_cfg.get('init_adapter_sha256', '')
+        cfg['init_adapter'] = old_cfg.get('init_adapter', '')
         changed = {k: (old_cfg.get(k), cfg.get(k)) for k in RESUME_LOCKED if old_cfg.get(k) != cfg.get(k)}
         if changed and not cfg["force_resume"]:
             raise SystemExit(f"[resume] locked settings differ from the saved run (old, new): {changed}. "
