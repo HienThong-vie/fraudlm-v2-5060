@@ -32,6 +32,8 @@ The completed RTX run is `xl_r16_multidata_5060_v1`: 6,016 steps and final valid
 
 The current registry uses one frozen classifier per dataset. Model facts are read at runtime, not recalled from adapter weights. The completed adapter still contains older training facts; it has not been retrained on the refreshed data. The separate `rtx5060_final_models.json` configuration is for a future run.
 
+On the same original 500 validation rows, original/continued adapter losses are 0.327504/0.336809; on 422 overlap-screened rows they are 0.379331/0.390314. Lower is better, so this diagnostic does not show improvement. Full results and limitations are in [grounding status](FINAL_GROUNDING.md). Final code checks: 436 passed, one optional reference test skipped on the Mac.
+
 ## Sources and limitations
 
 Architecture and training references include Sebastian Raschka's *Build a Large Language Model (From Scratch)* and the [companion repository](https://github.com/rasbt/LLMs-from-scratch). GPT-2 pretrained weights originate from OpenAI. Source, dataset and licence records remain in `dataset/SOURCES.md` and the existing project documentation.

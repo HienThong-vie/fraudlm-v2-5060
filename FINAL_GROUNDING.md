@@ -20,10 +20,19 @@ For a separate future training run, use `configs/rtx5060_final_models.json` with
 
 `evaluation/refreshed_context_probe/summary.json` records eight refreshed-context smoke cases: score and threshold repetition were 6/8; flag correctness was 7/8. These historical results used the earlier guard. Manual review found an invented Elliptic case number, an unsupported BankSim explanation and an unsafe ULB safety claim. The strengthened guard now checks shared answer rules, explicit case IDs, contradictory flags and unsupported safety guarantees. `evaluation/guard_recheck.json` separately records replay of saved raw answers; it is a known-answer regression check, not a new blind evaluation. Do not use the adapter autonomously for financial decisions.
 
-`evaluation/original_validation_comparison.json`, when complete, compares both adapters on the same original validation rows and reports a separately overlap-screened subset. `evaluation/original_holdout_audit.json` records screening of the original test split; private retained rows are under `.private/evaluation/clean_original/`. Broad semantic skill retention and independent entity-level evaluation remain unfinished.
+`evaluation/original_validation_comparison.json` is complete for both adapters. Response-token-weighted cross-entropy, lower is better:
+
+| Adapter | Original 500 validation rows | Overlap-screened 422 rows |
+|---|---:|---:|
+| Original `xl_r16_v1` | 0.327504 | 0.379331 |
+| Continued `xl_r16_multidata_5060_v1` | 0.336809 | 0.390314 |
+
+Both use FP32 merged adapters, the same data and masking, micro-batch one, max length 1024 and EOS targets. Run 2 is slightly worse on this diagnostic; the 0.0589 templated-set loss does not establish improved original-task ability. `evaluation/original_holdout_audit.json` records screening of the original test split; private retained rows are under `.private/evaluation/clean_original/`. Broad semantic skill retention and independent entity-level evaluation remain unfinished.
 
 The public summaries contain no raw case input records. Raw generated answers remain private under `.private/evaluation/`. The existing CUDA strict-repeat reproducibility discrepancy remains unresolved; these checks used CPU inference on the Mac.
 
 ## Verification
 
 Focused code, guard, dataset and resume checks passed on the Mac. A native CPU crash in single-token generation was resolved by allocating owned storage for the tied embedding/output matrix rather than retaining mapped-file storage. All 33 chat tests subsequently passed, including real small-model integration checks. Strict CUDA resume repeatability remains a separate unresolved limitation.
+
+Final suite: 436 passed, one optional Transformers reference test skipped. Device routing/configuration is covered; fresh RTX 5060 execution was not performed on this Mac.
