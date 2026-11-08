@@ -18,6 +18,7 @@ from utils.multisource_prompt import guard_prediction_answer, load_prediction_st
 
 
 def sha(path):
+    """SHA-256 of a file, read in 4 MB chunks so large adapter files are not loaded into memory at once."""
     h = hashlib.sha256()
     with Path(path).open('rb') as stream:
         for chunk in iter(lambda: stream.read(4 * 1024 * 1024), b''):
@@ -26,12 +27,20 @@ def sha(path):
 
 
 def metrics(answer, case):
+    """Score one answer against its stored case with string checks only (no model, no semantic judging).
+
+    Returns whether the answer repeats the exact score and threshold (six decimals), states the correct
+    flag status, and breaks any rule in `prediction_guard_reasons`.
+    """
     numbers = re.findall(r'(?<![\w.])\d+\.\d+(?!\w)', answer)
     def repeated(value):
+        """True if some decimal number in the answer equals `value` to six decimal places."""
         return any(abs(Decimal(n) - Decimal(f'{value:.6f}')) <= Decimal('.0000005') for n in numbers)
+    # "not flagged" must not be counted as "flagged for review", so strip the negative phrase first.
     unflagged = bool(re.search(r'\bnot flagged\b', answer, re.I))
     positive_text = re.sub(r'\bnot flagged(?: for review)?\b', '', answer, flags=re.I)
     flagged = bool(re.search(r'\bflagged for review\b', positive_text, re.I))
+    # Correct means: flagged when score >= threshold, otherwise not flagged, and never both.
     correct = (flagged and not unflagged) if case['score'] >= case['threshold'] else (unflagged and not flagged)
     from utils.multisource_prompt import prediction_guard_reasons
     return dict(score_repeated=repeated(case['score']), threshold_repeated=repeated(case['threshold']),
@@ -39,11 +48,17 @@ def metrics(answer, case):
 
 
 def select_rows(test, train, store, per_source):
+    """Choose the fixed evaluation sample: held-out test rows, up to `per_source` per dataset, half flagged.
+
+    Asserts that no chosen row (id, instruction + input, or context) also appears in the training data.
+    Returns a list of (row, stored_case) pairs.
+    """
     train_ids = {r['id'] for r in train}
     train_inputs = {(r['instruction'].strip(), r.get('input', '').strip()) for r in train}
     train_contexts = {r.get('input', '').strip() for r in train if r.get('task') == 'multisource_prediction'}
     pools = {}
     cases_by_id = {'multi_' + case['case_key'].replace(':', '_'): case for case in store.values()}
+    # Group test rows by dataset; the asserts below stop any training example leaking into the evaluation.
     for row in test:
         if row.get('task') != 'multisource_prediction':
             continue
@@ -52,6 +67,8 @@ def select_rows(test, train, store, per_source):
         assert row['input'].strip() not in train_contexts
         case = cases_by_id[row['id']]
         pools.setdefault(case['source_id'], []).append((row, case))
+    # Fixed seed and sorted pools make the sample identical on every run. Aim for half flagged and half
+    # not flagged per dataset, then fill any shortfall from the remaining rows.
     rng = random.Random(42)
     selected = []
     for source in sorted(pools):
@@ -66,6 +83,12 @@ def select_rows(test, train, store, per_source):
 
 
 def main():
+    """Generate answers for the fixed sample with the continued adapter, score them, and write summary.json.
+
+    Raw model answers and guard-assisted answers are scored separately. Progress is saved after every
+    row, so an interrupted run resumes where it stopped; `--rescore-only` re-scores saved answers
+    without loading the model. Row-level outputs go to .private/ and are never published.
+    """
     parser = argparse.ArgumentParser()
     parser.add_argument('--adapter', default='checkpoint/xl_r16_multidata_5060_v1/lora_adapter.pt')
     parser.add_argument('--per-source', type=int, default=4)
@@ -77,6 +100,7 @@ def main():
     val_path = ROOT / 'dataset_multisource/fraudlm_sft_val.json'
     test_path = ROOT / 'dataset_multisource/fraudlm_sft_test.json'
     adapter = ROOT / args.adapter
+    # Refuse to evaluate if the training data on disk differ from what this adapter was trained on.
     config = json.loads((adapter.parent / 'run_config.json').read_text())
     assert sha(train_path)[:16] + '-' + sha(val_path)[:16] == config['data_sha256'], 'Training data differ from recorded run'
     store = load_prediction_store(ROOT / 'dataset_multisource/prediction_store.jsonl')
@@ -88,11 +112,13 @@ def main():
         selected_ids=[r['id'] for r, _ in selected], seed=42, per_source=args.per_source,
         max_new_tokens=args.max_new_tokens, device='cpu', dtype='fp32',
         scope='Held-out instruction/case contexts from the recorded run2 data. No identical training ID/input/context. Not proof of unseen underlying entities across original mixed datasets. Old-model grounding; separate from refreshed-model context probes.')
+    # Freeze the selection: on a re-run the sample and file hashes must match the recorded selection.
     manifest_path = public / 'selection.json'
     if manifest_path.exists():
         assert json.loads(manifest_path.read_text()) == selection, 'Evaluation selection changed'
     else:
         manifest_path.write_text(json.dumps(selection, indent=2))
+    # Resume support: rows already answered in an earlier (possibly interrupted) run are read back.
     partial = private / 'rows.jsonl'
     done = {r['id']: r for r in map(json.loads, partial.read_text().splitlines())} if partial.exists() else {}
     if args.rescore_only:
@@ -102,6 +128,7 @@ def main():
                 done[row['id']]['system_metrics'] = metrics(done[row['id']]['guarded'], case)
         write_summary(public, selection, done)
         return
+    # Heavy imports and the model load happen only when generation is needed (not for --rescore-only).
     import torch
     torch.set_num_threads(4)
     from chat import Engine
@@ -130,6 +157,10 @@ def main():
 
 
 def write_summary(folder, selection, done):
+    """Write summary.json with the mean of each metric over the rows answered so far.
+
+    `done` maps row id to result; the status is "partial" until every selected row has been answered.
+    """
     rows = list(done.values())
     summary = dict(status='complete' if len(rows) == len(selection['selected_ids']) else 'partial',
         metric_definition='Six-decimal numeric repetition tolerance5e-7; explicit comparison status; separate existing guard-rule violations. Sentence-final punctuation permitted; negative review phrases are not positive flags.',
