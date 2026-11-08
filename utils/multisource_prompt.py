@@ -9,6 +9,7 @@ from decimal import Decimal
 
 from utils.guard import check_answer
 
+# Fixed rule line placed at the top of every grounded prompt, in training and at chat time.
 MULTISOURCE_RULES = (
     "Rules: support a fraud analyst; never approve, reject, block or freeze anything; "
     "a score is a review signal, not proof of fraud; use only the supplied facts."
@@ -19,6 +20,7 @@ def format_prediction_context(case: dict, include_rules: bool = True) -> str:
     """Render only facts that are safe to ground an answer in (never the target label)."""
     score = float(case["score"])
     threshold = float(case["threshold"])
+    # A case is flagged when its score reaches the threshold (equal counts as flagged).
     flagged = score >= threshold
     lines = [MULTISOURCE_RULES] if include_rules else []
     lines += [
@@ -44,10 +46,17 @@ def format_prediction_context(case: dict, include_rules: bool = True) -> str:
 
 
 def prediction_answer(case: dict, intent: str) -> str:
+    """Template answer for one stored case: the training target and the guard's fallback reply.
+
+    `intent` is "explain", "next_steps" or "limitations". Every answer repeats the exact score,
+    threshold and flag status, says the score is not proof of fraud, and mentions model factors only if
+    the case supplies them.
+    """
     score = float(case["score"])
     threshold = float(case["threshold"])
     flagged = score >= threshold
     result = "flagged for review" if flagged else "not flagged"
+    # Pick one of three wordings from a hash of the case key, so a case always gets the same wording.
     style = int(hashlib.sha256(str(case.get('case_key', case['case_id'])).encode()).hexdigest()[:8], 16) % 3
     bases = (
         f"{case['dataset_name']} case {case['case_id']} has a model score of {score:.6f}. The review threshold is {threshold:.6f}, so it is {result}.",
@@ -73,6 +82,7 @@ def prediction_answer(case: dict, intent: str) -> str:
 
 
 def load_prediction_store(path) -> dict[str, dict]:
+    """Read a prediction_store.jsonl file into {case_key: case}, where case_key is "<dataset_id>:<case_id>"."""
     cases = {}
     with open(path, encoding="utf-8") as fh:
         for line in fh:
@@ -83,6 +93,7 @@ def load_prediction_store(path) -> dict[str, dict]:
 
 def calculated_threshold_answer(question: str, case: dict) -> str | None:
     """Answer score/threshold gap questions with stored numbers, never model arithmetic."""
+    # Detect "how far is the score from the threshold" style questions with simple keyword rules.
     has_threshold = re.search(r"\b(?:threshold|cutoff|cut-off)\b", question, re.I)
     has_score = re.search(r"\bscore\b", question, re.I)
     asks_gap = re.search(r"\b(?:difference|gap|distance|margin)\b", question, re.I)
@@ -90,6 +101,7 @@ def calculated_threshold_answer(question: str, case: dict) -> str | None:
     has_comparison = has_score or re.search(r"\b(?:above|below|higher|lower|away|apart)\b", question, re.I)
     if not has_threshold or not ((has_score and asks_gap) or (asks_distance and has_comparison)):
         return None
+    # Decimal avoids binary floating-point rounding, so the six printed decimals are exact.
     score = Decimal(str(case["score"]))
     threshold = Decimal(str(case["threshold"]))
     gap = threshold - score
@@ -101,6 +113,7 @@ def calculated_threshold_answer(question: str, case: dict) -> str | None:
     return base + "The difference is 0.000000: the score equals the threshold, so it is flagged for review."
 
 
+# Guard patterns: customer-action words ("approve", "block", ...) and flat fraud verdicts ("is fraud").
 _UNSAFE_DECISION = re.compile(
     # A frozen threshold is a fixed model setting, not a customer action.
     r"\b(?:approve|approved|reject|rejected|block|blocked|freeze|"
@@ -112,6 +125,7 @@ def prediction_guard_reasons(text: str, case: dict) -> list[str]:
     """Report the exact rules that would replace this model answer."""
     raw = (text or "").strip()
     reasons = []
+    # Each check below appends one human-readable reason; an empty list means the answer passes.
     if not raw:
         reasons.append("Empty model response")
     decision = _UNSAFE_DECISION.search(raw)
@@ -120,6 +134,7 @@ def prediction_guard_reasons(text: str, case: dict) -> list[str]:
     verdict = _FRAUD_VERDICT.search(raw)
     if verdict:
         reasons.append(f"Fraud-verdict rule matched {verdict.group(0)!r}")
+    # The flag status the model states must agree with the stored score/threshold comparison.
     flagged = float(case["score"]) >= float(case["threshold"])
     low = raw.lower()
     negative = re.search(r"\bnot\s+flagged\b(?:\s+for\s+review)?", low)
@@ -130,6 +145,7 @@ def prediction_guard_reasons(text: str, case: dict) -> list[str]:
         reasons.append("Flagged status contradicts the stored score/threshold comparison")
     if re.search(r"\b(?:not at risk|risk[- ]free|guaranteed safe|definitely safe)\b", low):
         reasons.append("Unsupported guarantee of safety")
+    # The answer may not quote a different case ID, or name a different classifier family.
     if case.get('case_id'):
         mentioned = re.findall(r'\bcase\s+(?:id\s*:?\s*)?(\d[\w.-]*)', raw, re.I)
         if any(value.rstrip('.') != str(case['case_id']) for value in mentioned):
@@ -142,6 +158,7 @@ def prediction_guard_reasons(text: str, case: dict) -> list[str]:
                 'extratrees': r'\bextra[ _-]?trees\b'}
     if expected_model in families and any(re.search(pattern, low) for name, pattern in families.items() if name != expected_model):
         reasons.append('Classifier identity differs from the supplied current model')
+    # Without model-attribution factors, input signals must not be described as reasons for the score.
     if not case.get('signals', {}).get('main model factors') and re.search(
             r'\bso\s+(?:the\s+)?(?:model|classifier)\s+(?:gave|produced)|\b(?:raises?|lowers?)\s+(?:the\s+)?(?:model\s+)?score', low):
         reasons.append('Input signals presented as model attributions without attribution evidence')
@@ -152,6 +169,7 @@ def guard_prediction_answer(text: str, case: dict | None, intent: str = "explain
                             question: str = "") -> tuple[str, bool]:
     """Replace an unsafe/contradictory grounded answer with a deterministic fact-only answer."""
     raw = (text or "").strip()
+    # Two layers: the general FraudLM guard (utils.guard) and the prediction-specific rules above.
     checked = check_answer(raw, question=question, ctx=None,
                            grounding_text=format_prediction_context(case) if case else None)
     unsafe = checked.status == 'guarded' or bool(prediction_guard_reasons(raw, case) if case else [])
