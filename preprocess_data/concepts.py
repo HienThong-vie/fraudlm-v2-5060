@@ -11,7 +11,13 @@ Author: FraudLM v2 team (COS30049.2-1).
 
 from __future__ import annotations
 
+# Each entry is (template question, [three paraphrases], held-out question, answer).
+# preprocess_data/build_sft.py (`concept_rows`) uses them as follows: the template question and the first two
+# paraphrases go to train; the third paraphrase goes to val for about 1 entry in 5 (chosen by a hash of the
+# template question) and to train otherwise; the held-out question goes to the test split only. All five
+# questions of an entry share the same answer.
 CONCEPTS: list[tuple[str, list[str], str, str]] = [
+    # --- Fraud types
     ("What is account opening fraud?",
      ["Can you explain new account fraud?", "What does account opening fraud mean?", "How would you define fraud at account opening?"],
      "Describe what happens in new account fraud.",
@@ -32,6 +38,7 @@ CONCEPTS: list[tuple[str, list[str], str, str]] = [
      ["How does account takeover work?", "What does account takeover mean?", "Explain account takeover."],
      "How does account takeover differ from new account fraud?",
      "Account takeover is when a criminal gains control of an existing customer's account, for example with stolen login details, and then moves money or changes settings. It differs from new account fraud, where the account itself is created fraudulently."),
+    # --- Customer checks and anti-money laundering
     ("What does KYC mean in banking?",
      ["What is Know Your Customer?", "Why do banks do KYC checks?", "Explain KYC."],
      "What is the purpose of knowing your customer?",
@@ -48,6 +55,7 @@ CONCEPTS: list[tuple[str, list[str], str, str]] = [
      ["What does CDD mean?", "Why do banks carry out customer due diligence?", "Explain customer due diligence."],
      "What is checked during due diligence on a customer?",
      "Customer due diligence (CDD) means collecting and checking information about a customer and the purpose of the account, so the bank can understand the risk the customer poses."),
+    # --- Phishing and fraud signals
     ("What is phishing?",
      ["How does a phishing scam work?", "Explain phishing attacks.", "What is a phishing message?"],
      "How do criminals trick people with fake emails?",
@@ -60,6 +68,7 @@ CONCEPTS: list[tuple[str, list[str], str, str]] = [
      ["What can a device tell a fraud model?", "Why does session length matter in fraud screening?", "How do device details help screening?"],
      "What do device-level signals add to fraud detection?",
      "Device-related signals, such as the operating system, the session length and the number of distinct emails seen on one device, help a screening model notice repeated or automated applications."),
+    # --- Evaluation measures
     ("What is a false positive in fraud screening?",
      ["What does false positive mean for a fraud model?", "Why are false positives a problem?", "Explain false alarms in fraud detection."],
      "What is a false alarm in a fraud screening system?",
@@ -96,6 +105,7 @@ CONCEPTS: list[tuple[str, list[str], str, str]] = [
      ["Why not judge a fraud model by accuracy?", "Can a model have high accuracy and still be useless?", "What is wrong with accuracy on imbalanced data?"],
      "Why can a model that flags nothing still look accurate?",
      "When fraud is rare, a model that labels everything genuine can still show very high accuracy. That is why fraud models are judged with precision, recall and PR-AUC instead of accuracy alone."),
+    # --- Imbalanced data, thresholds and scores
     ("What is class imbalance?",
      ["Why is imbalanced data a problem?", "How does imbalance affect fraud models?", "Explain class imbalance."],
      "What happens when one class is much rarer than the other?",
@@ -116,6 +126,7 @@ CONCEPTS: list[tuple[str, list[str], str, str]] = [
      ["What does it mean for a model to be calibrated?", "Why check calibration?", "Explain probability calibration."],
      "How do I know if scores match real frequencies?",
      "Calibration checks whether predicted scores match observed frequencies, for instance whether cases scored 0.8 are fraud about 80% of the time. Many classifiers are not calibrated by default."),
+    # --- Data splits, leakage, drift and feature preparation
     ("What is a temporal split?",
      ["Why split data by time for fraud detection?", "What is a time-based train and test split?", "Explain splitting by month."],
      "Why not shuffle the data randomly before splitting?",
@@ -144,6 +155,7 @@ CONCEPTS: list[tuple[str, list[str], str, str]] = [
      ["What does feature scaling do?", "What is standardisation in machine learning?", "Why scale features before logistic regression?"],
      "Why rescale columns to a common scale?",
      "Standardising a numeric feature rescales it to a mean of zero and unit spread, so that features measured on different scales can be compared in a linear model."),
+    # --- Model types
     ("What is logistic regression?",
      ["How does logistic regression work?", "Why use logistic regression for fraud screening?", "Explain logistic regression simply."],
      "Why is logistic regression easy to explain?",
@@ -160,6 +172,7 @@ CONCEPTS: list[tuple[str, list[str], str, str]] = [
      ["How can clustering help with fraud analysis?", "What does K-Means do?", "Explain clustering of applications."],
      "Why group applications without labels?",
      "Clustering groups similar applications without using labels. Analysts can then check whether some groups contain more fraud than others."),
+    # --- Human review, explanations, data and fairness
     ("What does human-in-the-loop mean?",
      ["Why keep a person in charge of fraud decisions?", "What role does the analyst play next to a model?", "Explain human review of model flags."],
      "Should a model make the final call?",
@@ -180,6 +193,7 @@ CONCEPTS: list[tuple[str, list[str], str, str]] = [
      ["What is a fairness check for a fraud model?", "How do you compare error rates between groups?", "Why does the false-positive rate matter for fairness?"],
      "Can an accurate model still be unfair?",
      "Fairness checks compare error rates across groups, such as the false-positive rate for each group. A model can be accurate overall and still burden one group with more false alarms."),
+    # --- Account security and review operations
     ("What is multi-factor authentication?",
      ["How does two-factor login protect an account?", "Why use a one-time code?", "Explain MFA."],
      "Why is a password alone not enough?",
@@ -200,6 +214,7 @@ CONCEPTS: list[tuple[str, list[str], str, str]] = [
      ["How do banks verify a new customer?", "Which checks happen at account opening?", "What is verified for a new bank account?"],
      "How is a new customer's identity confirmed?",
      "Common identity checks at account opening include verifying an identity document, matching the name and address to records, and checking that the phone number and email belong to the applicant."),
+    # --- Trade-offs and model evaluation practice
     ("What is the trade-off between precision and recall?",
      ["What happens to recall if I raise the threshold?", "How do precision and recall move together?", "Why can't a model maximise both precision and recall?"],
      "What changes when the threshold is lowered?",
